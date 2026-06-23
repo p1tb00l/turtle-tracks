@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 export default function MapView({ path = [], crawls = [], center = null }) {
@@ -6,6 +6,11 @@ export default function MapView({ path = [], crawls = [], center = null }) {
   const mapRef = useRef(null);
   const pathLineRef = useRef(null);
   const markersRef = useRef([]);
+  const tileLayerRef = useRef(null);
+
+  const [mapStyle, setMapStyle] = useState(() => {
+    return localStorage.getItem('turtletracks_map_style') || 'satellite';
+  });
 
   // Initial Map Mount
   useEffect(() => {
@@ -25,9 +30,22 @@ export default function MapView({ path = [], crawls = [], center = null }) {
       attributionControl: false
     }).setView([initialCenter.lat, initialCenter.lng], initialZoom);
 
-    // Add a dark modern map tile layer (e.g. CartoDB Dark Matter fits our theme perfectly!)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 20
+    // Initial tile layer setup based on current mapStyle state
+    const currentStyle = localStorage.getItem('turtletracks_map_style') || 'satellite';
+    let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    let attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+
+    if (currentStyle === 'voyager') {
+      url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    } else if (currentStyle === 'dark') {
+      url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    }
+
+    tileLayerRef.current = L.tileLayer(url, {
+      maxZoom: 20,
+      attribution: attribution
     }).addTo(map);
 
     mapRef.current = map;
@@ -39,6 +57,32 @@ export default function MapView({ path = [], crawls = [], center = null }) {
       }
     };
   }, []);
+
+  // Manage active map tile layer style dynamically
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    let attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+
+    if (mapStyle === 'voyager') {
+      url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    } else if (mapStyle === 'dark') {
+      url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    }
+
+    tileLayerRef.current = L.tileLayer(url, {
+      maxZoom: 20,
+      attribution: attribution
+    }).addTo(map);
+  }, [mapStyle]);
 
   // Update Route Polyline when Path updates
   useEffect(() => {
@@ -136,9 +180,54 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     }
   }, [center]);
 
+  const handleStyleChange = (style) => {
+    setMapStyle(style);
+    localStorage.setItem('turtletracks_map_style', style);
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '220px' }}></div>
+      
+      {/* Map style switcher */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          display: 'flex',
+          backgroundColor: 'rgba(10, 25, 47, 0.85)',
+          padding: '4px',
+          borderRadius: '8px',
+          border: '1px solid rgba(48, 60, 85, 0.6)',
+          zIndex: 1000
+        }}
+      >
+        {[
+          { id: 'satellite', label: 'Sat' },
+          { id: 'voyager', label: 'Map' },
+          { id: 'dark', label: 'Dark' }
+        ].map(style => (
+          <button
+            key={style.id}
+            onClick={() => handleStyleChange(style.id)}
+            style={{
+              padding: '4px 8px',
+              fontSize: '0.65rem',
+              fontWeight: '600',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: mapStyle === style.id ? '#64ffda' : 'transparent',
+              color: mapStyle === style.id ? '#020c1b' : '#8892b0',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {style.label}
+          </button>
+        ))}
+      </div>
+
       <div 
         style={{
           position: 'absolute',
