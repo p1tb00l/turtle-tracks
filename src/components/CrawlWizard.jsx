@@ -16,13 +16,6 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
   const [relocationCoords, setRelocationCoords] = useState(null);
   const [eggCount, setEggCount] = useState('');
 
-  // Equipment Checklist
-  const [meshChecked, setMeshChecked] = useState(false);
-  const [polesChecked, setPolesChecked] = useState(false);
-  const [dnrSignChecked, setDnrSignChecked] = useState(false);
-  const [cageChecked, setCageChecked] = useState(false);
-  const [tapeChecked, setTapeChecked] = useState(false);
-
   // False Crawl state
   const [falseCrawlFactors, setFalseCrawlFactors] = useState('Simple U-turn');
   const [crossedOut, setCrossedOut] = useState(false);
@@ -65,7 +58,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
   const handleSave = () => {
     // Validate core checklists
     if (crawlType === 'nest') {
-      const equipmentInstalled = meshChecked && polesChecked && dnrSignChecked && cageChecked && tapeChecked;
+      const equipmentInstalled = true;
       
       onSaveCrawl({
         type: 'nest',
@@ -372,28 +365,14 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
 
               {/* Equipment checklist items */}
               <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label className="form-label">Protection Equipment Installed</label>
-                
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={meshChecked} onChange={(e) => setMeshChecked(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Center plastic mesh over chamber</span>
-                </label>
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={polesChecked} onChange={(e) => setPolesChecked(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Place 3 PVC poles in a triangle</span>
-                </label>
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={dnrSignChecked} onChange={(e) => setDnrSignChecked(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Front PVC pole DNR sign numbered & legible</span>
-                </label>
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={cageChecked} onChange={(e) => setCageChecked(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Secure metal cages (corners tight)</span>
-                </label>
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={tapeChecked} onChange={(e) => setTapeChecked(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Wrap red tape around poles</span>
-                </label>
+                <label className="form-label" style={{ color: '#e6f1ff', fontSize: '0.9rem', fontWeight: '600' }}>Install Nest Equipment</label>
+                <ul style={{ paddingLeft: '20px', fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '8px', margin: 0 }}>
+                  <li>Center plastic mesh over chamber</li>
+                  <li>Place 3 PVC poles in a triangle</li>
+                  <li>Front PVC pole DNR sign numbered & legible</li>
+                  <li>Secure metal cages (corners tight)</li>
+                  <li>Wrap red tape around poles</li>
+                </ul>
               </div>
             </div>
           )}
@@ -513,8 +492,8 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
               {/* Equipment Setup Photo */}
               {crawlType === 'nest' && (
                 <label className="btn btn-secondary" style={{ padding: '8px 12px', fontSize: '0.75rem', cursor: 'pointer', marginTop: '4px' }}>
-                  <Camera size={14} /> Setup Final Photo
-                  <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Final Setup')} style={{ display: 'none' }} />
+                  <Camera size={14} /> Protected Nest Photo
+                  <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Protected Nest Photo')} style={{ display: 'none' }} />
                 </label>
               )}
             </div>
