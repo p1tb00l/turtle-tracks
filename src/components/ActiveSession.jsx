@@ -35,6 +35,19 @@ const getWmoDescription = (code) => {
   return 'Overcast';
 };
 
+const getWeatherEmoji = (desc) => {
+  const d = desc.toLowerCase();
+  if (d.includes('thunderstorm') || d.includes('storm')) return '⛈️';
+  if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return '🌧️';
+  if (d.includes('snow') || d.includes('flurry') || d.includes('ice')) return '❄️';
+  if (d.includes('fog') || d.includes('haze') || d.includes('mist')) return '🌫️';
+  if (d.includes('overcast')) return '☁️';
+  if (d.includes('mostly cloudy') || d.includes('cloudy') || d.includes('broken')) return '⛅';
+  if (d.includes('partly')) return '⛅';
+  if (d.includes('sunny') || d.includes('clear') || d.includes('fair')) return '☀️';
+  return '🌡️';
+};
+
 const fetchWeather = async () => {
   try {
     const res = await fetch("https://api.weather.gov/stations/KHXD/observations/latest", {
@@ -48,7 +61,8 @@ const fetchWeather = async () => {
       const textDesc = data.properties.textDescription || '';
       if (tempC !== null && tempC !== undefined) {
         const tempF = Math.round((tempC * 9 / 5) + 32);
-        return `${tempF}°F, ${textDesc}`;
+        const emoji = getWeatherEmoji(textDesc);
+        return `${tempF}°F ${emoji} ${textDesc}`;
       }
     }
   } catch (err) {
@@ -63,7 +77,8 @@ const fetchWeather = async () => {
       const tempF = Math.round(data.current.temperature_2m);
       const code = data.current.weather_code;
       const textDesc = getWmoDescription(code);
-      return `${tempF}°F, ${textDesc}`;
+      const emoji = getWeatherEmoji(textDesc);
+      return `${tempF}°F ${emoji} ${textDesc}`;
     }
   } catch (err) {
     console.warn("Open-Meteo weather fetch failed:", err);
@@ -90,7 +105,7 @@ const fetchTides = async () => {
           const ampm = hours >= 12 ? 'PM' : 'AM';
           hours = hours % 12 || 12;
           const formattedTime = `${hours}:${minutes} ${ampm}`;
-          const typeLabel = p.type === 'H' ? 'High' : 'Low';
+          const typeLabel = p.type === 'H' ? '▲' : '▼';
           return `${typeLabel} ${parseFloat(p.v).toFixed(1)}ft @ ${formattedTime}`;
         }).join(' • ');
       }
