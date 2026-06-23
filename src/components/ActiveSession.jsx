@@ -24,6 +24,83 @@ const getLocalDateString = (date) => {
   return `${yyyy}${mm}${dd}`;
 };
 
+const getWmoDescription = (code) => {
+  if (code === 0) return 'Clear';
+  if (code === 1 || code === 2) return 'Partly Cloudy';
+  if (code === 3) return 'Cloudy';
+  if (code >= 51 && code <= 55) return 'Light Drizzle';
+  if (code >= 61 && code <= 65) return 'Rain';
+  if (code >= 80 && code <= 82) return 'Rain Showers';
+  if (code >= 95) return 'Thunderstorm';
+  return 'Overcast';
+};
+
+const fetchWeather = async () => {
+  try {
+    const res = await fetch("https://api.weather.gov/stations/KHXD/observations/latest", {
+      headers: {
+        "User-Agent": "(turtletracks, contact@example.com)"
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const tempC = data.properties.temperature.value;
+      const textDesc = data.properties.textDescription || '';
+      if (tempC !== null && tempC !== undefined) {
+        const tempF = Math.round((tempC * 9 / 5) + 32);
+        return `${tempF}°F, ${textDesc}`;
+      }
+    }
+  } catch (err) {
+    console.warn("NWS weather fetch failed, trying fallback:", err);
+  }
+
+  // Open-Meteo Fallback (Daufuskie Landing coordinates: 32.1265, -80.8436)
+  try {
+    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.1265&longitude=-80.8436&current=temperature_2m,weather_code&temperature_unit=fahrenheit");
+    if (res.ok) {
+      const data = await res.json();
+      const tempF = Math.round(data.current.temperature_2m);
+      const code = data.current.weather_code;
+      const textDesc = getWmoDescription(code);
+      return `${tempF}°F, ${textDesc}`;
+    }
+  } catch (err) {
+    console.warn("Open-Meteo weather fetch failed:", err);
+  }
+  return 'Unavailable';
+};
+
+const fetchTides = async () => {
+  try {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const todayYmd = `${year}${month}${day}`;
+
+    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=${todayYmd}&end_date=${todayYmd}&station=8669801&product=predictions&datum=MLLW&units=english&time_zone=lst_ldt&interval=hilo&format=json`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.predictions && data.predictions.length > 0) {
+        return data.predictions.map(p => {
+          const timeStr = p.t.split(' ')[1]; // HH:MM
+          let [hours, minutes] = timeStr.split(':');
+          hours = parseInt(hours, 10);
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12 || 12;
+          const formattedTime = `${hours}:${minutes} ${ampm}`;
+          const typeLabel = p.type === 'H' ? 'High' : 'Low';
+          return `${typeLabel} ${parseFloat(p.v).toFixed(1)}ft @ ${formattedTime}`;
+        }).join(' • ');
+      }
+    }
+  } catch (err) {
+    console.warn("Could not fetch tide data:", err);
+  }
+  return 'Unavailable';
+};
+
 export default function ActiveSession({ activeSession, setActiveSession, onSessionComplete, sessions = [], onNavigate }) {
   const [seconds, setSeconds] = useState(0);
 
@@ -134,6 +211,27 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       if (timer) clearInterval(timer);
     };
   }, [activeSession]);
+
+  // Fetch weather and tide data for the active session if not already populated
+  useEffect(() => {
+    if (activeSession && (!activeSession.weather || !activeSession.tides)) {
+      const loadWeatherAndTides = async () => {
+        const weather = await fetchWeather();
+        const tides = await fetchTides();
+        
+        setActiveSession(prev => {
+          if (!prev) return null;
+          if (prev.weather === weather && prev.tides === tides) return prev;
+          return {
+            ...prev,
+            weather: weather || prev.weather || 'Unavailable',
+            tides: tides || prev.tides || 'Unavailable'
+          };
+        });
+      };
+      loadWeatherAndTides();
+    }
+  }, [activeSession?.id]);
 
   // Handle Starting a Session
   const handleStartSession = () => {
@@ -309,6 +407,24 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
               </div>
             </div>
           </div>
+
+          {/* Minimalist Weather and Tide Info */}
+          {(activeSession.weather || activeSession.tides) && (
+            <div className="glass-panel" style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem', color: '#8892b0' }}>
+              {activeSession.weather && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Weather (Daufuskie Landing):</span>
+                  <strong style={{ color: '#e6f1ff' }}>{activeSession.weather}</strong>
+                </div>
+              )}
+              {activeSession.tides && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(48, 60, 85, 0.25)', paddingTop: '4px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '0.65rem' }}>Tides (Bloody Point):</span>
+                  <strong style={{ color: '#64ffda', wordBreak: 'break-word', lineHeight: '1.3' }}>{activeSession.tides}</strong>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Map/List View toggles */}
           <div style={{ display: 'flex', gap: '8px' }}>

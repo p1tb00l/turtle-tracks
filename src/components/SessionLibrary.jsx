@@ -232,6 +232,36 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 <strong style={{ fontSize: '0.95rem', color: '#64ffda' }}>{selectedSession.crawls?.length || 0}</strong>
               </div>
             </div>
+
+            {/* Weather & Tide metadata */}
+            {(selectedSession.weather || selectedSession.tides) && (
+              <div 
+                style={{ 
+                  marginTop: '14px', 
+                  paddingTop: '12px', 
+                  borderTop: '1px solid rgba(48, 60, 85, 0.4)', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '6px',
+                  fontSize: '0.72rem',
+                  color: '#8892b0',
+                  textAlign: 'left'
+                }}
+              >
+                {selectedSession.weather && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Weather (Daufuskie Landing):</span>
+                    <strong style={{ color: '#e6f1ff' }}>{selectedSession.weather}</strong>
+                  </div>
+                )}
+                {selectedSession.tides && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span>Tides (Bloody Point):</span>
+                    <strong style={{ color: '#64ffda', lineHeight: '1.3' }}>{selectedSession.tides}</strong>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Leaflet map of patrol walk */}
