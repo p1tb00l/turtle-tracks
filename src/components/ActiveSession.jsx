@@ -127,28 +127,69 @@ const fetchWeather = async () => {
   return 'Unavailable';
 };
 
+const getOffsetDateYmd = (offsetDays) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
+const parseNoaaDate = (tStr) => {
+  const parts = tStr.split(' ');
+  const dateParts = parts[0].split('-');
+  const timeParts = parts[1].split(':');
+  return new Date(
+    parseInt(dateParts[0], 10),
+    parseInt(dateParts[1], 10) - 1,
+    parseInt(dateParts[2], 10),
+    parseInt(timeParts[0], 10),
+    parseInt(timeParts[1], 10)
+  );
+};
+
+const formatSingleTide = (p) => {
+  if (!p) return '';
+  const timeStr = p.t.split(' ')[1]; // HH:MM
+  let [hours, minutes] = timeStr.split(':');
+  hours = parseInt(hours, 10);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const formattedTime = `${hours}:${minutes} ${ampm}`;
+  const typeLabel = p.type === 'H' ? '▲' : '▼';
+  return `${typeLabel} ${parseFloat(p.v).toFixed(1)}ft @ ${formattedTime}`;
+};
+
 const fetchTides = async () => {
   try {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const todayYmd = `${year}${month}${day}`;
+    const beginYmd = getOffsetDateYmd(-1);
+    const endYmd = getOffsetDateYmd(1);
 
-    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=${todayYmd}&end_date=${todayYmd}&station=8669801&product=predictions&datum=MLLW&units=english&time_zone=lst_ldt&interval=hilo&format=json`);
+    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=${beginYmd}&end_date=${endYmd}&station=8669801&product=predictions&datum=MLLW&units=english&time_zone=lst_ldt&interval=hilo&format=json`);
     if (res.ok) {
       const data = await res.json();
       if (data.predictions && data.predictions.length > 0) {
-        return data.predictions.map(p => {
-          const timeStr = p.t.split(' ')[1]; // HH:MM
-          let [hours, minutes] = timeStr.split(':');
-          hours = parseInt(hours, 10);
-          const ampm = hours >= 12 ? 'PM' : 'AM';
-          hours = hours % 12 || 12;
-          const formattedTime = `${hours}:${minutes} ${ampm}`;
-          const typeLabel = p.type === 'H' ? '▲' : '▼';
-          return `${typeLabel} ${parseFloat(p.v).toFixed(1)}ft @ ${formattedTime}`;
-        }).join(' • ');
+        const now = new Date();
+        let previousTide = null;
+        let nextTide = null;
+
+        data.predictions.forEach(p => {
+          const pDate = parseNoaaDate(p.t);
+          if (pDate <= now) {
+            if (!previousTide || pDate > parseNoaaDate(previousTide.t)) {
+              previousTide = p;
+            }
+          } else {
+            if (!nextTide || pDate < parseNoaaDate(nextTide.t)) {
+              nextTide = p;
+            }
+          }
+        });
+
+        const prevStr = previousTide ? `Prev: ${formatSingleTide(previousTide)}` : '';
+        const nextStr = nextTide ? `Next: ${formatSingleTide(nextTide)}` : '';
+        return `🌊 ${[prevStr, nextStr].filter(Boolean).join(' • ')}`;
       }
     }
   } catch (err) {
