@@ -428,7 +428,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
               <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <label className="form-checkbox">
                   <input type="checkbox" checked={crossedOut} onChange={(e) => setCrossedOut(e.target.checked)} />
-                  <span style={{ fontSize: '0.85rem' }}>Cross out tracks in sand (marks track as counted)</span>
+                  <span style={{ fontSize: '0.85rem' }}>Cross out tracks in sand to indicate crawl was processed</span>
                 </label>
 
                 <label className="form-checkbox">
@@ -440,7 +440,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
                   <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label className="form-checkbox">
                       <input type="checkbox" checked={markedPost} onChange={(e) => setMarkedPost(e.target.checked)} />
-                      <span style={{ fontSize: '0.8rem', color: '#8892b0' }}>Marked nest site with a warning post/stake</span>
+                      <span style={{ fontSize: '0.8rem', color: '#8892b0' }}>Marked possible nest site with PN pole</span>
                     </label>
                   </div>
                 )}
