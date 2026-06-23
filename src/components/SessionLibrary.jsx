@@ -250,14 +250,14 @@ export default function SessionLibrary({ sessions, setSessions }) {
               >
                 {selectedSession.weather && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Weather (Daufuskie Landing):</span>
+                    <span>Weather:</span>
                     <strong style={{ color: '#e6f1ff' }}>{selectedSession.weather}</strong>
                   </div>
                 )}
                 {selectedSession.tides && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span>Tides (Bloody Point):</span>
-                    <strong style={{ color: '#64ffda', lineHeight: '1.3' }}>{selectedSession.tides}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Tides:</span>
+                    <strong style={{ color: '#64ffda', textAlign: 'right' }}>{selectedSession.tides}</strong>
                   </div>
                 )}
               </div>

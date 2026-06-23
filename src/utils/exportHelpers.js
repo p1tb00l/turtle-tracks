@@ -39,10 +39,10 @@ export function generateTextSummary(session) {
   text += `Time: ${startTimeStr} - ${endTimeStr} (${durationStr})\n`;
   text += `Distance Tracked: ${distMiles} miles\n`;
   if (session.weather) {
-    text += `Weather (Daufuskie Landing): ${session.weather}\n`;
+    text += `Weather: ${session.weather}\n`;
   }
   if (session.tides) {
-    text += `Tides (Bloody Point): ${session.tides}\n`;
+    text += `Tides: ${session.tides}\n`;
   }
   if (session.notes) {
     text += `Patrol Notes: ${session.notes}\n`;
@@ -439,8 +439,8 @@ export function exportToHTML(session) {
       <div><strong>Distance:</strong> ${distMiles} miles</div>
       <div><strong>Nests Found:</strong> ${nests.length}</div>
       <div><strong>False Crawls:</strong> ${falseCrawls.length}</div>
-      ${session.weather ? `<div><strong>Weather (Daufuskie Landing):</strong> ${session.weather}</div>` : ''}
-      ${session.tides ? `<div style="grid-column: 1 / -1; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;"><strong>Tides (Bloody Point):</strong> ${session.tides}</div>` : ''}
+      ${session.weather ? `<div><strong>Weather:</strong> ${session.weather}</div>` : ''}
+      ${session.tides ? `<div style="grid-column: 1 / -1; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;"><strong>Tides:</strong> ${session.tides}</div>` : ''}
     </div>
     
     ${session.notes ? `

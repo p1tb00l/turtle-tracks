@@ -189,7 +189,7 @@ const fetchTides = async () => {
 
         const prevStr = previousTide ? `Prev: ${formatSingleTide(previousTide)}` : '';
         const nextStr = nextTide ? `Next: ${formatSingleTide(nextTide)}` : '';
-        return `🌊 ${[prevStr, nextStr].filter(Boolean).join(' • ')}`;
+        return `${[prevStr, nextStr].filter(Boolean).join(' • ')} 🌊`;
       }
     }
   } catch (err) {
@@ -510,14 +510,14 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
             <div className="glass-panel" style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem', color: '#8892b0' }}>
               {activeSession.weather && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Weather (Daufuskie Landing):</span>
+                  <span>Weather:</span>
                   <strong style={{ color: '#e6f1ff' }}>{activeSession.weather}</strong>
                 </div>
               )}
               {activeSession.tides && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(48, 60, 85, 0.25)', paddingTop: '4px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '0.65rem' }}>Tides (Bloody Point):</span>
-                  <strong style={{ color: '#64ffda', wordBreak: 'break-word', lineHeight: '1.3' }}>{activeSession.tides}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(48, 60, 85, 0.25)', paddingTop: '4px', marginTop: '2px' }}>
+                  <span>Tides:</span>
+                  <strong style={{ color: '#64ffda', textAlign: 'right' }}>{activeSession.tides}</strong>
                 </div>
               )}
             </div>
