@@ -6,6 +6,7 @@ import NearbyRadar from './NearbyRadar';
 import GPXDatabase from './GPXDatabase';
 
 export default function GPSViewer() {
+  const isLocal = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const isTracking = true;
   const { location, accuracy, error, isSimulated, startSimulator, stopSimulator } = useGeolocation(isTracking);
   const [islandName, setIslandName] = useState('Daufuskie Island, SC');
@@ -189,23 +190,25 @@ export default function GPSViewer() {
           <div style={{ fontSize: '0.85rem' }}>
             <strong style={{ color: '#e6f1ff', display: 'block', marginBottom: '4px' }}>GPS Signal Failure</strong>
             {error}
-            <button
-              onClick={startSimulator}
-              style={{
-                marginTop: '10px',
-                display: 'block',
-                backgroundColor: '#f4a261',
-                color: '#020c1b',
-                border: 'none',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontSize: '0.75rem'
-              }}
-            >
-              Activate Walk Simulator Mode
-            </button>
+            {isLocal && (
+              <button
+                onClick={startSimulator}
+                style={{
+                  marginTop: '10px',
+                  display: 'block',
+                  backgroundColor: '#f4a261',
+                  color: '#020c1b',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem'
+                }}
+              >
+                Activate Walk Simulator Mode
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -281,19 +284,21 @@ export default function GPSViewer() {
       )}
 
       {/* Simulator control toggles */}
-      <div className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <strong style={{ fontSize: '0.85rem', color: '#e6f1ff' }}>Walk Simulator Mode</strong>
-          <span style={{ fontSize: '0.75rem', color: '#8892b0' }}>Override GPS for indoor testing/demos</span>
+      {(isLocal || isSimulated) && (
+        <div className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <strong style={{ fontSize: '0.85rem', color: '#e6f1ff' }}>Walk Simulator Mode</strong>
+            <span style={{ fontSize: '0.75rem', color: '#8892b0' }}>Override GPS for indoor testing/demos</span>
+          </div>
+          <button
+            onClick={isSimulated ? stopSimulator : startSimulator}
+            className={`btn ${isSimulated ? 'btn-danger' : 'btn-secondary'}`}
+            style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem' }}
+          >
+            {isSimulated ? 'Disable Sim' : 'Enable Sim'}
+          </button>
         </div>
-        <button
-          onClick={isSimulated ? stopSimulator : startSimulator}
-          className={`btn ${isSimulated ? 'btn-danger' : 'btn-secondary'}`}
-          style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '0.8rem' }}
-        >
-          {isSimulated ? 'Disable Sim' : 'Enable Sim'}
-        </button>
-      </div>
+      )}
 
       {/* Hidden canvas for card generation */}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>

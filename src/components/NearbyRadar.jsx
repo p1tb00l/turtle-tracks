@@ -112,6 +112,7 @@ const parseGPX = (gpxText) => {
 };
 
 export default function NearbyRadar({ userLocation }) {
+  const isLocal = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const [waypoints, setWaypoints] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
   const [loading, setLoading] = useState(true);
@@ -392,7 +393,7 @@ export default function NearbyRadar({ userLocation }) {
 
       {!loading && !fetchError && !userLocation && (
         <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: '#8892b0', fontStyle: 'italic', fontSize: '0.9rem' }}>
-          Acquiring active GPS location to search for nearby nests. Enable Simulator Mode if testing indoors.
+          Acquiring active GPS location to search for nearby nests.{isLocal ? ' Enable Simulator Mode if testing indoors.' : ''}
         </div>
       )}
 

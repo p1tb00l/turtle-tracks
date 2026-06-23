@@ -97,7 +97,8 @@ export function useGeolocation(isTracking = false, options = {}) {
 
     const handleError = (err) => {
       console.warn('Geolocation error:', err.message);
-      setError(`GPS Error: ${err.message}. Switch to Simulator Mode if indoors.`);
+      const isLocal = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      setError(`GPS Error: ${err.message}.${isLocal ? ' Switch to Simulator Mode if indoors.' : ''}`);
     };
 
     const geoOptions = {
