@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TurtleTracks Mapping" xmlns="http://www.topografix.com/GPX/1/1">
+  <wpt lat="32.1228" lon="-80.8656">
+    <name>Nest #12 (In Situ)</name>
+    <desc>In situ Loggerhead nest. Standard triangle equipment setup installed.</desc>
+    <time>2026-06-20T06:12:00Z</time>
+  </wpt>
+  
+  <wpt lat="32.1245" lon="-80.8672">
+    <name>Nest #15 (In Situ)</name>
+    <desc>In situ Loggerhead nest. High beach profile above spring tide line.</desc>
+    <time>2026-06-21T07:45:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1235" lon="-80.8664">
+    <name>Nest #14 (Final Site)</name>
+    <desc>Final relocation site. 114 eggs moved to safe primary dune area.</desc>
+    <time>2026-06-20T08:30:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1212" lon="-80.8640">
+    <name>Nest #14 (Original Site)</name>
+    <desc>Original nesting crawl site below wash-over zone. Eggs relocated.</desc>
+    <time>2026-06-20T08:10:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1252" lon="-80.8682">
+    <name>Nest #16 (Final Site)</name>
+    <desc>Final relocation site. 105 eggs relocated due to severe erosion risk.</desc>
+    <time>2026-06-21T09:50:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1220" lon="-80.8648">
+    <name>Nest #16 (Original Site)</name>
+    <desc>Original nesting site subject to high erosion at tide pool edge.</desc>
+    <time>2026-06-21T09:20:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1218" lon="-80.8644">
+    <name>Crawl #18 (False Crawl)</name>
+    <desc>False crawl, simple U-turn. Tracks crossed out in sand.</desc>
+    <time>2026-06-20T22:30:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1202" lon="-80.8615">
+    <name>Crawl #25 (False Crawl)</name>
+    <desc>False crawl. Turned around due to artificial light disturbance.</desc>
+    <time>2026-06-21T23:15:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1208" lon="-80.8628">
+    <name>Crawl #21 (Possible Nest)</name>
+    <desc>Possible nest. Probing unsuccessful but warning post installed.</desc>
+    <time>2026-06-21T01:40:00Z</time>
+  </wpt>
+
+  <wpt lat="32.1192" lon="-80.8605">
+    <name>Crawl #28 (Possible Nest)</name>
+    <desc>Possible nest, high dunes body pit. Will monitor for hatch activity.</desc>
+    <time>2026-06-22T04:10:00Z</time>
+  </wpt>
+</gpx>
