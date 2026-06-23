@@ -48,6 +48,33 @@ const getWeatherEmoji = (desc) => {
   return '🌡️';
 };
 
+const getIconEmoji = (iconUrl) => {
+  if (!iconUrl) return null;
+  const path = iconUrl.toLowerCase();
+  if (path.includes('/tsra')) return '⛈️';
+  if (path.includes('/rain') || path.includes('/drizzle') || path.includes('/showers')) return '🌧️';
+  if (path.includes('/snow') || path.includes('/fzra') || path.includes('/ip')) return '❄️';
+  if (path.includes('/fog') || path.includes('/haze')) return '🌫️';
+  if (path.includes('/ovc')) return '☁️';
+  if (path.includes('/sct') || path.includes('/bkn') || path.includes('/few') || path.includes('/mostly_cloudy') || path.includes('/partly_cloudy')) return '⛅';
+  if (path.includes('/skc') || path.includes('/clear')) return '☀️';
+  if (path.includes('/wind') || path.includes('/dust') || path.includes('/smoke')) return '💨';
+  return null;
+};
+
+const getIconDescription = (iconUrl) => {
+  if (!iconUrl) return 'Fair';
+  const path = iconUrl.toLowerCase();
+  if (path.includes('/tsra')) return 'Thunderstorms';
+  if (path.includes('/rain') || path.includes('/drizzle') || path.includes('/showers')) return 'Rain';
+  if (path.includes('/snow') || path.includes('/fzra')) return 'Snow';
+  if (path.includes('/fog') || path.includes('/haze')) return 'Foggy';
+  if (path.includes('/ovc')) return 'Overcast';
+  if (path.includes('/sct') || path.includes('/bkn') || path.includes('/few')) return 'Partly Cloudy';
+  if (path.includes('/skc') || path.includes('/clear')) return 'Clear';
+  return 'Fair';
+};
+
 const fetchWeather = async () => {
   try {
     const res = await fetch("https://api.weather.gov/stations/KHXD/observations/latest", {
@@ -58,11 +85,24 @@ const fetchWeather = async () => {
     if (res.ok) {
       const data = await res.json();
       const tempC = data.properties.temperature.value;
-      const textDesc = data.properties.textDescription || '';
+      let textDesc = data.properties.textDescription || '';
+      const iconUrl = data.properties.icon || '';
+      
       if (tempC !== null && tempC !== undefined) {
         const tempF = Math.round((tempC * 9 / 5) + 32);
-        const emoji = getWeatherEmoji(textDesc);
-        return `${tempF}°F ${emoji} ${textDesc}`;
+        
+        let emoji = getWeatherEmoji(textDesc);
+        if ((emoji === '🌡️' || !emoji) && iconUrl) {
+          const parsedEmoji = getIconEmoji(iconUrl);
+          if (parsedEmoji) emoji = parsedEmoji;
+        }
+        
+        if (!textDesc && iconUrl) {
+          textDesc = getIconDescription(iconUrl);
+        }
+        
+        const descriptionStr = textDesc ? ` ${textDesc}` : '';
+        return `${tempF}°F ${emoji}${descriptionStr}`;
       }
     }
   } catch (err) {
@@ -78,7 +118,8 @@ const fetchWeather = async () => {
       const code = data.current.weather_code;
       const textDesc = getWmoDescription(code);
       const emoji = getWeatherEmoji(textDesc);
-      return `${tempF}°F ${emoji} ${textDesc}`;
+      const descriptionStr = textDesc ? ` ${textDesc}` : '';
+      return `${tempF}°F ${emoji}${descriptionStr}`;
     }
   } catch (err) {
     console.warn("Open-Meteo weather fetch failed:", err);
