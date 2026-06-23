@@ -66,6 +66,17 @@ export default function SessionLibrary({ sessions, setSessions }) {
     setSessions(updatedSessions);
   };
 
+  const handleUpdateSessionNotes = (notes) => {
+    const updatedSessions = sessions.map((s) => {
+      if (s.id !== selectedSessionId) return s;
+      return {
+        ...s,
+        notes
+      };
+    });
+    setSessions(updatedSessions);
+  };
+
   const handleDeleteSession = (id, e) => {
     e.stopPropagation(); // Avoid selecting row when clicking delete
     if (window.confirm('Are you sure you want to delete this session log? This cannot be undone.')) {
@@ -226,6 +237,40 @@ export default function SessionLibrary({ sessions, setSessions }) {
           {/* Leaflet map of patrol walk */}
           <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
             <MapView path={selectedSession.path} crawls={selectedSession.crawls} />
+          </div>
+
+          {/* Patrol Notes Card */}
+          <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h4 style={{ fontSize: '0.8rem', color: '#e6f1ff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                Patrol Notes
+              </h4>
+              <span style={{ fontSize: '0.65rem', color: '#8892b0' }}>
+                Autosaved
+              </span>
+            </div>
+            <textarea
+              placeholder="Add notes about this patrol (weather, beach conditions, tide level, volunteers, unusual tracks...)"
+              value={selectedSession.notes || ''}
+              onChange={(e) => handleUpdateSessionNotes(e.target.value)}
+              style={{
+                width: '100%',
+                minHeight: '80px',
+                backgroundColor: 'rgba(2, 12, 27, 0.4)',
+                border: '1px solid rgba(48, 60, 85, 0.8)',
+                borderRadius: '8px',
+                color: '#e6f1ff',
+                padding: '10px',
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+                resize: 'vertical',
+                outline: 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: 'inherit'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#64ffda'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(48, 60, 85, 0.8)'}
+            />
           </div>
 
           {/* Export Action Grid */}

@@ -38,6 +38,9 @@ export function generateTextSummary(session) {
   text += `Location: ${session.locationName || 'Daufuskie Island'}\n`;
   text += `Time: ${startTimeStr} - ${endTimeStr} (${durationStr})\n`;
   text += `Distance Tracked: ${distMiles} miles\n`;
+  if (session.notes) {
+    text += `Patrol Notes: ${session.notes}\n`;
+  }
   text += `-----------------------------------------\n`;
   text += `SUMMARY:\n`;
   text += `  Total Crawls Detected: ${session.crawls?.length || 0}\n`;
@@ -431,6 +434,12 @@ export function exportToHTML(session) {
       <div><strong>Nests Found:</strong> ${nests.length}</div>
       <div><strong>False Crawls:</strong> ${falseCrawls.length}</div>
     </div>
+    
+    ${session.notes ? `
+    <div class="notes-box" style="margin-top: -15px; margin-bottom: 30px;">
+      <strong>Patrol Notes:</strong> ${session.notes}
+    </div>
+    ` : ''}
 
     <h2>Activity Logs</h2>
     ${crawlsHtml}
