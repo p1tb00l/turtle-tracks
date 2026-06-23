@@ -12,7 +12,7 @@ export default function QuickCamera() {
   const [isPredicting, setIsPredicting] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
 
-  const TAGS = ['Crawl Tracks', 'Nest Setup', 'Nest Card', 'Broken Egg Specimen', 'Nest Predation', 'Other Details'];
+  const TAGS = ['Crawl Tracks', 'Nest Setup', 'Nest Card', 'Egg Specimen', 'Nest Predation', 'Other Details'];
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
