@@ -105,7 +105,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
         <div className={`wizard-step-node ${step >= 4 ? (step > 4 ? 'completed' : 'active') : ''}`}>4</div>
       </div>
 
-      {/* STEP 1: INITIAL PHOTOS & PREDICTOR */}
+      {/* STEP 1: INITIAL PHOTOS */}
       {step === 1 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="glass-panel" style={{ padding: '20px' }}>
@@ -201,14 +201,60 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
             </div>
 
             {/* Probing checklist instructions */}
-            <div className="glass-card" style={{ padding: '14px', borderLeft: '3px solid #f4a261' }}>
-              <h4 style={{ fontSize: '0.85rem', color: '#f4a261', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Probing & Chamber Search Checklist</h4>
-              <ul style={{ paddingLeft: '16px', fontSize: '0.78rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <li>Probe grid area around suspected body pit using leg weight (never arms).</li>
-                <li>Find soft spot where probe suddenly gives way to cavity (chamber top).</li>
-                <li><strong>Dig carefully by hand only</strong> (no shovels) once soft spot is verified.</li>
-                <li>Feel for first egg to confirm nest chamber.</li>
-              </ul>
+            <div className="glass-card" style={{ padding: '14px', borderLeft: '3px solid #f4a261', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div>
+                <h4 style={{ fontSize: '0.85rem', color: '#f4a261', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Probing & Chamber Search Checklist</h4>
+                <ul style={{ paddingLeft: '16px', fontSize: '0.78rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <li>Probe grid area around suspected body pit using leg weight (never arms).</li>
+                  <li>Find soft spot where probe suddenly gives way to cavity (chamber top).</li>
+                  <li><strong>Dig carefully by hand only</strong> (no shovels) once soft spot is verified.</li>
+                  <li>Feel for first egg to confirm nest chamber.</li>
+                </ul>
+              </div>
+
+              <details style={{
+                marginTop: '4px',
+                borderTop: '1px solid rgba(244, 162, 97, 0.2)',
+                paddingTop: '8px'
+              }}>
+                <summary style={{
+                  fontSize: '0.78rem',
+                  color: '#f4a261',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  outline: 'none',
+                  userSelect: 'none',
+                  display: 'list-item'
+                }}>
+                  Locating the Chamber via Crawl Anatomy
+                </summary>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: '#8892b0',
+                  marginTop: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  lineHeight: '1.4'
+                }}>
+                  <div>
+                    <strong style={{ color: '#e6f1ff' }}>Crawl Centerline:</strong>
+                    The chamber lies along the central axis between the incoming and outgoing tracks.
+                  </div>
+                  <div>
+                    <strong style={{ color: '#e6f1ff' }}>Crawl Apex:</strong>
+                    Measure 0.5 to 1.5 meters behind the apex (turnaround point) in the seaward/inland boundary.
+                  </div>
+                  <div>
+                    <strong style={{ color: '#e6f1ff' }}>Body Pit & Thrown Sand:</strong>
+                    Look for the secondary body pit where fluffy, loose sand was thrown backward. The chamber is typically situated under the leading/front edge of this dry, thrown sand mound.
+                  </div>
+                  <div>
+                    <strong style={{ color: '#e6f1ff' }}>Search Grid:</strong>
+                    If not found on the centerline, probe in a concentric grid extending 1 meter outward from the center of the body pit.
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Trash2, Eye, Scan, RefreshCw, Upload } from 'lucide-react';
+import { Camera, Trash2, Eye, Upload } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function QuickCamera() {
@@ -8,10 +8,6 @@ export default function QuickCamera() {
   const [currentNotes, setCurrentNotes] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   
-  // Interactive prediction states
-  const [isPredicting, setIsPredicting] = useState(false);
-  const [predictionResult, setPredictionResult] = useState(null);
-
   const TAGS = ['Crawl Tracks', 'Nest Setup', 'Nest Card', 'Egg Specimen', 'Nest Predation', 'Other Details'];
 
   const handlePhotoUpload = (e) => {
@@ -32,7 +28,6 @@ export default function QuickCamera() {
       
       // Select for preview immediately
       setSelectedPhoto(newPhoto);
-      setPredictionResult(null);
     };
     reader.readAsDataURL(file);
   };
@@ -41,29 +36,10 @@ export default function QuickCamera() {
     setPhotos(photos.filter(p => p.id !== id));
     if (selectedPhoto && selectedPhoto.id === id) {
       setSelectedPhoto(null);
-      setPredictionResult(null);
     }
   };
 
-  const handlePredictChamber = () => {
-    setIsPredicting(true);
-    setPredictionResult(null);
-    
-    // Simulate analyzing the track pattern
-    setTimeout(() => {
-      setIsPredicting(false);
-      
-      // Create random simulated offsets for the Daufuskie Island loggerhead
-      const horizontalOffset = (Math.random() * 0.6 - 0.3).toFixed(2);
-      const verticalDistance = (1.1 + Math.random() * 0.4).toFixed(2);
-      
-      setPredictionResult({
-        x: 40 + Math.random() * 20, // percentage for overlay placement
-        y: 45 + Math.random() * 20,
-        text: `Nesting chamber likely located ${verticalDistance}m behind crawl apex, offset ${horizontalOffset}m ${horizontalOffset > 0 ? 'right' : 'left'} of track centerline.`
-      });
-    }, 2000);
-  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -140,14 +116,14 @@ export default function QuickCamera() {
         </div>
       </div>
 
-      {/* Modal Preview with Predictor */}
+      {/* Modal Preview */}
       {selectedPhoto && (
         <div className="glass-panel" style={{ padding: '20px', border: '1.5px solid var(--color-primary)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <h3 style={{ fontSize: '1rem', color: '#e6f1ff' }}>Image Analysis Preview</h3>
             <button 
               className="btn btn-secondary" 
-              onClick={() => { setSelectedPhoto(null); setPredictionResult(null); }}
+              onClick={() => { setSelectedPhoto(null); }}
               style={{ padding: '4px 12px', fontSize: '0.75rem', borderRadius: '12px' }}
             >
               Close
@@ -161,75 +137,7 @@ export default function QuickCamera() {
               style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'contain' }} 
             />
 
-            {/* Simulated Chamber Prediction Target Overlay */}
-            {isPredicting && (
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(2, 12, 27, 0.7)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px'
-              }}>
-                <RefreshCw className="animate-spin text-[#64ffda]" size={36} style={{ animation: 'spin 2s linear infinite', color: '#64ffda' }} />
-                <span style={{ fontSize: '0.85rem', color: '#64ffda', fontWeight: '600', letterSpacing: '0.05em' }}>RUNNING APEX ALIGNMENT...</span>
-              </div>
-            )}
-
-            {predictionResult && (
-              <div style={{
-                position: 'absolute',
-                top: `${predictionResult.y}%`,
-                left: `${predictionResult.x}%`,
-                transform: 'translate(-50%, -50%)',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                border: '2px solid #ff7a59',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 15px rgba(255,122,89,0.8)',
-                zIndex: 10
-              }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff7a59' }}></div>
-                {/* Ping rings */}
-                <div className="radar-circle" style={{ borderColor: '#ff7a59', width: '40px', height: '40px' }}></div>
-              </div>
-            )}
           </div>
-
-          {/* Analysis Actions */}
-          {selectedPhoto.tag === 'Crawl Tracks' && (
-            <div style={{ marginTop: '15px' }}>
-              {!predictionResult ? (
-                <button 
-                  className="btn btn-accent" 
-                  onClick={handlePredictChamber} 
-                  disabled={isPredicting}
-                  style={{ width: '100%', padding: '10px' }}
-                >
-                  <Scan size={18} />
-                  Predict Nest Chamber Location
-                </button>
-              ) : (
-                <div style={{ 
-                  backgroundColor: 'rgba(255, 122, 89, 0.1)', 
-                  border: '1.5px dashed #ff7a59', 
-                  borderRadius: '8px', 
-                  padding: '12px',
-                  fontSize: '0.85rem',
-                  color: '#e6f1ff',
-                  marginTop: '10px'
-                }}>
-                  <strong style={{ color: '#ff7a59', display: 'block', marginBottom: '4px' }}>Chamber Locator Estimate:</strong>
-                  {predictionResult.text}
-                </div>
-              )}
-            </div>
-          )}
 
           <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#8892b0' }}>
             <div><strong>Tag:</strong> <span style={{ color: '#64ffda' }}>{selectedPhoto.tag}</span></div>
@@ -281,7 +189,7 @@ export default function QuickCamera() {
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                     <button 
-                      onClick={() => { setSelectedPhoto(p); setPredictionResult(null); }}
+                      onClick={() => { setSelectedPhoto(p); }}
                       style={{ background: 'none', border: 'none', color: '#64ffda', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '500' }}
                     >
                       <Eye size={12} /> View

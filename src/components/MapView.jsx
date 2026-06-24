@@ -7,9 +7,15 @@ export default function MapView({ path = [], crawls = [], center = null }) {
   const pathLineRef = useRef(null);
   const markersRef = useRef([]);
   const tileLayerRef = useRef(null);
+  const communityLayersRef = useRef([]);
 
   const [mapStyle, setMapStyle] = useState(() => {
     return localStorage.getItem('turtletracks_map_style') || 'satellite';
+  });
+
+  const [mapReady, setMapReady] = useState(false);
+  const [showCommunities, setShowCommunities] = useState(() => {
+    return localStorage.getItem('turtletracks_show_communities') === 'true';
   });
 
   // Initial Map Mount
@@ -49,12 +55,14 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     }).addTo(map);
 
     mapRef.current = map;
+    setMapReady(true);
 
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
+      setMapReady(false);
     };
   }, []);
 
@@ -82,12 +90,12 @@ export default function MapView({ path = [], crawls = [], center = null }) {
       maxZoom: 20,
       attribution: attribution
     }).addTo(map);
-  }, [mapStyle]);
+  }, [mapStyle, mapReady]);
 
   // Update Route Polyline when Path updates
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !mapReady) return;
 
     // Remove old path line
     if (pathLineRef.current) {
@@ -110,12 +118,12 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     if (path.length === 2) {
       map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
     }
-  }, [path]);
+  }, [path, mapReady]);
 
   // Update Markers when Crawls update
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !mapReady) return;
 
     // Clear existing markers
     markersRef.current.forEach(m => map.removeLayer(m));
@@ -170,19 +178,135 @@ export default function MapView({ path = [], crawls = [], center = null }) {
       const group = new L.featureGroup(markersRef.current);
       map.fitBounds(group.getBounds().pad(0.15));
     }
-  }, [crawls]);
+  }, [crawls, mapReady]);
 
   // Recenter map if external center updates
   useEffect(() => {
     const map = mapRef.current;
-    if (map && center) {
+    if (map && center && mapReady) {
       map.setView([center.lat, center.lng], 16);
     }
-  }, [center]);
+  }, [center, mapReady]);
+
+  // Manage Daufuskie Island communities overlay
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    // Clear existing community layers
+    communityLayersRef.current.forEach(layer => map.removeLayer(layer));
+    communityLayersRef.current = [];
+
+    if (!showCommunities) return;
+
+    const COMMUNITIES = [
+      {
+        name: 'Haig Point',
+        color: '#64ffda',
+        coordinates: [
+          [32.132, -80.852],
+          [32.142, -80.858],
+          [32.155, -80.845],
+          [32.150, -80.830],
+          [32.135, -80.835],
+          [32.132, -80.838]
+        ]
+      },
+      {
+        name: 'Melrose',
+        color: '#00b4d8',
+        coordinates: [
+          [32.132, -80.838],
+          [32.130, -80.844],
+          [32.112, -80.852],
+          [32.112, -80.844],
+          [32.122, -80.838]
+        ]
+      },
+      {
+        name: 'Oak Ridge',
+        color: '#ff7a59',
+        coordinates: [
+          [32.112, -80.852],
+          [32.112, -80.844],
+          [32.098, -80.855],
+          [32.098, -80.862]
+        ]
+      },
+      {
+        name: 'Bloody Point',
+        color: '#ff477e',
+        coordinates: [
+          [32.098, -80.862],
+          [32.098, -80.855],
+          [32.082, -80.868],
+          [32.076, -80.878],
+          [32.083, -80.885],
+          [32.092, -80.875]
+        ]
+      },
+      {
+        name: 'Historic District',
+        color: '#f4a261',
+        coordinates: [
+          [32.132, -80.852],
+          [32.128, -80.858],
+          [32.112, -80.865],
+          [32.098, -80.875],
+          [32.090, -80.885],
+          [32.095, -80.902],
+          [32.115, -80.905],
+          [32.132, -80.888]
+        ]
+      }
+    ];
+
+    COMMUNITIES.forEach(comm => {
+      const polygon = L.polygon(comm.coordinates, {
+        color: comm.color,
+        fillColor: comm.color,
+        fillOpacity: 0.15,
+        weight: 1.5,
+        dashArray: '4, 4'
+      }).addTo(map);
+
+      polygon.bindTooltip(comm.name, {
+        permanent: true,
+        direction: 'center',
+        className: 'community-label'
+      }).openTooltip();
+
+      polygon.on('mouseover', () => {
+        polygon.setStyle({
+          fillOpacity: 0.35,
+          weight: 2.5
+        });
+      });
+      polygon.on('mouseout', () => {
+        polygon.setStyle({
+          fillOpacity: 0.15,
+          weight: 1.5
+        });
+      });
+
+      communityLayersRef.current.push(polygon);
+    });
+
+    return () => {
+      communityLayersRef.current.forEach(layer => map.removeLayer(layer));
+      communityLayersRef.current = [];
+    };
+  }, [showCommunities, mapStyle, mapReady]);
 
   const handleStyleChange = (style) => {
     setMapStyle(style);
     localStorage.setItem('turtletracks_map_style', style);
+  };
+
+  const handleToggleCommunities = () => {
+    const nextVal = !showCommunities;
+    setShowCommunities(nextVal);
+    localStorage.setItem('turtletracks_show_communities', String(nextVal));
   };
 
   return (
@@ -226,6 +350,55 @@ export default function MapView({ path = [], crawls = [], center = null }) {
             {style.label}
           </button>
         ))}
+      </div>
+
+      {/* Communities Overlay Toggle */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '48px',
+          right: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          backgroundColor: 'rgba(10, 25, 47, 0.85)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          padding: '6px 10px',
+          borderRadius: '8px',
+          border: '1.5px solid rgba(100, 255, 218, 0.2)',
+          zIndex: 1000,
+          cursor: 'pointer',
+          userSelect: 'none',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
+          transition: 'all 0.2s ease'
+        }}
+        onClick={handleToggleCommunities}
+      >
+        <input 
+          type="checkbox"
+          checked={showCommunities}
+          onChange={() => {}}
+          style={{ 
+            cursor: 'pointer',
+            accentColor: '#64ffda',
+            margin: 0,
+            width: '13px',
+            height: '13px'
+          }}
+        />
+        <span 
+          style={{ 
+            fontSize: '0.65rem', 
+            fontWeight: '700', 
+            fontFamily: 'Montserrat, sans-serif',
+            color: showCommunities ? '#64ffda' : '#8892b0',
+            letterSpacing: '0.03em',
+            textTransform: 'uppercase'
+          }}
+        >
+          Communities
+        </span>
       </div>
 
       <div 

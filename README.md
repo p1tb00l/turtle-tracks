@@ -14,7 +14,7 @@ TurtleTracks is a mobile-first Progressive Web Application (PWA) built with Reac
    * Step-by-step checklist based on South Carolina DNR guidelines.
    * Camera prompts with tags (Initial tracks, Nest setups, DNR card photos).
    * Probing directions guide (reminders to use legs, dig by hand only).
-   * **Chamber Location Predictor:** Simulated track apex analysis showing predicted egg chamber location.
+   * **Chamber Search Guide:** Collapsible, field-ready marine biology guide detailing egg chamber location relative to crawl features.
    * Washover/tide risk calculator warning triggers if logged below the high tideline.
    * Protective equipment checklists (mesh screens, PVC triangle, DNR tags, cages, red tape).
    * Relocation logs (egg counts, relocation coordinates tracking).
