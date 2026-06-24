@@ -104,20 +104,20 @@ export default function Guide() {
 
             <div className="glass-card" style={{ borderLeft: '4px solid #f4a261', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <h4 style={{ color: '#e6f1ff', fontSize: '1rem', marginBottom: '2px' }}>Locating the Chamber via Crawl Anatomy</h4>
-              <ul style={{ paddingLeft: '20px', fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <li>
-                  <strong style={{ color: '#e6f1ff' }}>Crawl Centerline:</strong> The egg chamber lies along the central axis between the incoming and outgoing tracks.
-                </li>
-                <li>
-                  <strong style={{ color: '#e6f1ff' }}>Crawl Apex:</strong> Measure 0.5 to 1.5 meters behind the apex (turnaround point) in the seaward/inland boundary.
-                </li>
-                <li>
-                  <strong style={{ color: '#e6f1ff' }}>Body Pit & Thrown Sand:</strong> Look for the secondary body pit where fluffy, loose sand was thrown backward. The chamber is typically situated under the leading/front edge of this dry, thrown sand mound.
-                </li>
-                <li>
-                  <strong style={{ color: '#e6f1ff' }}>Search Grid:</strong> If not found on the centerline, probe in a concentric grid extending 1 meter outward from the center of the body pit.
-                </li>
-              </ul>
+              <div style={{ fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <strong style={{ color: '#e6f1ff' }}>1. Locate the Primary Sand Mound:</strong> Identify the large, heavy mound of dry sand that the turtle flung backward with her front flippers. The egg chamber is never in the middle of this high mound—it is located just in front of it (on the inland side).
+                </div>
+                <div>
+                  <strong style={{ color: '#e6f1ff' }}>2. Pinpoint the Transition Zone:</strong> Stand at the inland/leading edge of that thrown sand mound, right where it transitions into the shallower depression of the body pit. The egg chamber is typically centered horizontally between her final incoming and outgoing flipper marks in this specific zone.
+                </div>
+                <div>
+                  <strong style={{ color: '#e6f1ff' }}>3. Probe GENTLY from the Edge Inward:</strong> Using a standard, blunt-tipped nest probe, push vertically into the sand every few inches, moving from the known hard, undisturbed beach sand toward the soft, disturbed area. Listen and feel for a sudden change in resistance: the probe will drop easily through loose sand or into the top 1-2 inches of an air pocket when you hit the chamber. Stop immediately when the resistance drops to avoid puncturing eggs.
+                </div>
+                <div style={{ borderTop: '1px solid rgba(244, 162, 97, 0.2)', paddingTop: '8px', fontStyle: 'italic', fontSize: '0.8rem', color: '#f4a261' }}>
+                  <strong>Pro Tip for Volunteers:</strong> Loggerhead egg chambers are usually shaped like a lightbulb or flask and sit roughly 10 to 18 inches (25–45 cm) below the surface of the undisturbed sand layer. If you are probing deeper than that without a change in resistance, you are likely off-center.
+                </div>
+              </div>
             </div>
           </div>
         )}
