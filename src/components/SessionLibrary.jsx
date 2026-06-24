@@ -19,6 +19,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
   const [copiedId, setCopiedId] = useState(null);
   const [quickCamPhotos] = useLocalStorage('turtletracks_quickcam', []);
   const [activePickerCrawlIndex, setActivePickerCrawlIndex] = useState(null);
+  const [selectedPreviewPhoto, setSelectedPreviewPhoto] = useState(null);
 
   const selectedSession = sessions.find((s) => s.id === selectedSessionId);
 
@@ -56,6 +57,32 @@ export default function SessionLibrary({ sessions, setSessions }) {
         return {
           ...c,
           photos: currentPhotos.filter((p) => p.id !== photoId)
+        };
+      });
+      return {
+        ...s,
+        crawls: updatedCrawls
+      };
+    });
+    setSessions(updatedSessions);
+  };
+
+  const handleUpdatePhotoNotes = (crawlIndex, photoId, notes) => {
+    const updatedSessions = sessions.map((s) => {
+      if (s.id !== selectedSessionId) return s;
+      const updatedCrawls = s.crawls.map((c, cIdx) => {
+        if (cIdx !== crawlIndex) return c;
+        const currentPhotos = c.photos || [];
+        const updatedPhotos = currentPhotos.map((p) => {
+          if (p.id !== photoId) return p;
+          return {
+            ...p,
+            notes
+          };
+        });
+        return {
+          ...c,
+          photos: updatedPhotos
         };
       });
       return {
@@ -395,7 +422,20 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                         {crawl.photos.map(p => (
                           <div key={p.id} style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '6px', overflow: 'visible', margin: '4px 0' }}>
-                            <img src={p.dataUrl} alt={p.tag} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(100, 255, 218, 0.2)' }} />
+                            <img 
+                              src={p.dataUrl} 
+                              alt={p.tag} 
+                              onClick={() => setSelectedPreviewPhoto({ crawlIndex: idx, photo: p })}
+                              style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                objectFit: 'cover', 
+                                borderRadius: '6px', 
+                                border: '1px solid rgba(100, 255, 218, 0.2)',
+                                cursor: 'pointer' 
+                              }} 
+                              title="Click to view/edit comments"
+                            />
                             <button
                               onClick={() => handleDetachPhoto(idx, p.id)}
                               style={{
@@ -572,6 +612,104 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedPreviewPhoto && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(2, 12, 27, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+          }}
+          onClick={() => setSelectedPreviewPhoto(null)}
+        >
+          <div 
+            className="glass-panel" 
+            style={{ 
+              width: '100%', 
+              maxWidth: '480px', 
+              padding: '20px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '12px',
+              border: '1.5px solid var(--color-primary)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1rem', color: '#e6f1ff', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>
+                Photo Notes &bull; <span style={{ color: '#64ffda' }}>{selectedPreviewPhoto.photo.tag}</span>
+              </h3>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setSelectedPreviewPhoto(null)}
+                style={{ padding: '4px 10px', fontSize: '0.7rem', borderRadius: '12px' }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(48, 60, 85, 0.8)' }}>
+              <img 
+                src={selectedPreviewPhoto.photo.dataUrl} 
+                alt={selectedPreviewPhoto.photo.tag} 
+                style={{ width: '100%', display: 'block', maxHeight: '240px', objectFit: 'contain', backgroundColor: 'rgba(2, 12, 27, 0.6)' }} 
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.72rem', color: '#8892b0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Photo Notes / Comments:
+              </label>
+              <textarea
+                placeholder="Enter comments about this image..."
+                value={selectedPreviewPhoto.photo.notes || ''}
+                onChange={(e) => {
+                  const updatedNotes = e.target.value;
+                  setSelectedPreviewPhoto({
+                    ...selectedPreviewPhoto,
+                    photo: {
+                      ...selectedPreviewPhoto.photo,
+                      notes: updatedNotes
+                    }
+                  });
+                  handleUpdatePhotoNotes(selectedPreviewPhoto.crawlIndex, selectedPreviewPhoto.photo.id, updatedNotes);
+                }}
+                style={{
+                  width: '100%',
+                  minHeight: '80px',
+                  backgroundColor: 'rgba(2, 12, 27, 0.4)',
+                  border: '1px solid rgba(48, 60, 85, 0.8)',
+                  borderRadius: '8px',
+                  color: '#e6f1ff',
+                  padding: '10px',
+                  fontSize: '0.85rem',
+                  lineHeight: '1.4',
+                  resize: 'none',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#64ffda'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(48, 60, 85, 0.8)'}
+              />
+            </div>
+            
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setSelectedPreviewPhoto(null)}
+              style={{ padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

@@ -16,6 +16,21 @@ function App() {
   // Library of completed sessions
   const [sessions, setSessions] = useLocalStorage('turtletracks_sessions', []);
 
+  // Preload a mock photo for testing/demo if roll is empty
+  React.useEffect(() => {
+    const existing = localStorage.getItem('turtletracks_quickcam');
+    if (!existing || existing === '[]') {
+      localStorage.setItem('turtletracks_quickcam', JSON.stringify([
+        {
+          id: 'test-photo-id',
+          tag: 'Egg Specimen',
+          dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+          notes: 'Mock egg specimen captured on Melrose Beach.'
+        }
+      ]));
+    }
+  }, []);
+
   const handleSessionComplete = (newSession) => {
     setSessions([newSession, ...sessions]);
     // Switch to Library tab to view/export the session report
