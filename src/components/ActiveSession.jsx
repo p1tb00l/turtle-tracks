@@ -209,6 +209,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     }
   };
   const [showWizard, setShowWizard] = useState(false);
+  const [isTurtleEncounter, setIsTurtleEncounter] = useState(false);
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
   
   // Geolocation tracking hook
@@ -396,6 +397,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
         activeCoords={location} 
         onSaveCrawl={handleSaveCrawl}
         onCancel={() => setShowWizard(false)}
+        isTurtleEncounter={isTurtleEncounter}
       />
     );
   }
@@ -600,11 +602,42 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
             <button 
               className="btn btn-primary" 
-              onClick={() => setShowWizard(true)}
+              onClick={() => {
+                setIsTurtleEncounter(false);
+                setShowWizard(true);
+              }}
               style={{ width: '100%', padding: '14px', borderRadius: '10px', fontSize: '1rem' }}
             >
               <Plus size={20} />
               Found a Crawl?
+            </button>
+
+            <button 
+              className="btn" 
+              onClick={() => {
+                setIsTurtleEncounter(true);
+                setShowWizard(true);
+              }}
+              style={{ 
+                width: '100%', 
+                padding: '14px', 
+                borderRadius: '10px', 
+                fontSize: '1rem',
+                backgroundColor: 'rgba(165, 180, 252, 0.15)',
+                border: '1.5px solid rgba(165, 180, 252, 0.5)',
+                color: '#a5b4fc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: '700',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <SeaTurtle size={20} fill="currentColor" />
+              Encountered a Turtle?
             </button>
 
             <button 

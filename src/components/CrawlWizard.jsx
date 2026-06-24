@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Camera, MapPin, CheckSquare, ArrowRight, ArrowLeft, Save, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
-export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
+export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTurtleEncounter = false }) {
   const [step, setStep] = useState(1);
   const [crawlType, setCrawlType] = useState('nest'); // 'nest' or 'false_crawl'
   
@@ -25,6 +25,13 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
   const [notes, setNotes] = useState('');
   const [nestCardDone, setNestCardDone] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
+
+  // Turtle Encounter Form State
+  const [flipperTagLeft, setFlipperTagLeft] = useState('');
+  const [flipperTagRight, setFlipperTagRight] = useState('');
+  const [carapaceNotchToNotch, setCarapaceNotchToNotch] = useState('');
+  const [carapaceNotchToTip, setCarapaceNotchToTip] = useState('');
+  const [carapaceWidestPoint, setCarapaceWidestPoint] = useState('');
 
   // Auto-fill active GPS coordinates when mounting
   useEffect(() => {
@@ -72,7 +79,13 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
         relocationCoords: !inSitu ? relocationCoords : null,
         eggCount: !inSitu ? eggCount : null,
         nestCardDone,
-        notes
+        notes,
+        isTurtleEncounter,
+        flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
+        flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
       });
     } else {
       onSaveCrawl({
@@ -86,7 +99,13 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
         isPossibleNest,
         markedPost: isPossibleNest ? markedPost : false,
         nestCardDone,
-        notes
+        notes,
+        isTurtleEncounter,
+        flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
+        flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
       });
     }
   };
@@ -99,17 +118,164 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
       
       {/* Wizard Header Progress Node Bar */}
       <div className="wizard-steps">
-        <div className={`wizard-step-node ${step >= 1 ? (step > 1 ? 'completed' : 'active') : ''}`}>1</div>
-        <div className={`wizard-step-node ${step >= 2 ? (step > 2 ? 'completed' : 'active') : ''}`}>2</div>
-        <div className={`wizard-step-node ${step >= 3 ? (step > 3 ? 'completed' : 'active') : ''}`}>3</div>
-        <div className={`wizard-step-node ${step >= 4 ? (step > 4 ? 'completed' : 'active') : ''}`}>4</div>
+        {Array.from({ length: isTurtleEncounter ? 5 : 4 }, (_, i) => {
+          const sNum = i + 1;
+          return (
+            <div 
+              key={sNum} 
+              className={`wizard-step-node ${step >= sNum ? (step > sNum ? 'completed' : 'active') : ''}`}
+            >
+              {sNum}
+            </div>
+          );
+        })}
       </div>
 
-      {/* STEP 1: INITIAL PHOTOS */}
-      {step === 1 && (
+      {/* STEP 1: TURTLE ENCOUNTER DETAILS (ONLY if isTurtleEncounter is true) */}
+      {isTurtleEncounter && step === 1 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff' }}>Step 1: Sea Turtle Encounter Details</h3>
+            
+            {/* Caution/Instruction Banner */}
+            <div style={{
+              backgroundColor: 'rgba(255, 122, 89, 0.1)',
+              border: '1px solid #ff7a59',
+              borderRadius: '12px',
+              padding: '14px',
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'flex-start',
+              fontSize: '0.8rem',
+              lineHeight: '1.4'
+            }}>
+              <AlertCircle className="text-[#ff7a59]" style={{ flexShrink: 0, marginTop: '2px' }} size={18} />
+              <div>
+                <strong style={{ color: '#e6f1ff', display: 'block', marginBottom: '4px' }}>Safety & Conservation Protocol</strong>
+                <p style={{ color: '#8892b0', margin: 0 }}>
+                  To avoid interrupting nesting, <strong style={{ color: '#ff7a59' }}>only take measurements and check flipper tags after the turtle has finished nesting and is heading back to the ocean.</strong> Never shine white lights or camera flashes directly at the turtle's eyes. Use red light only.
+                </p>
+              </div>
+            </div>
+
+            {/* Photos section */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Turtle Photographs</label>
+              <label className="btn btn-secondary" style={{ width: '100%', cursor: 'pointer', padding: '12px', borderRadius: '10px', fontSize: '0.85rem' }}>
+                <Camera size={18} />
+                Capture Turtle Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  onChange={(e) => handlePhotoUpload(e, 'Sea Turtle')} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+
+              {photos.filter(p => p.tag === 'Sea Turtle').length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+                  {photos.filter(p => p.tag === 'Sea Turtle').map(p => (
+                    <img 
+                      key={p.id} 
+                      src={p.dataUrl} 
+                      alt="Sea Turtle" 
+                      style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--panel-border)' }} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Flipper tags */}
+            <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.3)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label className="form-label" style={{ marginBottom: 0 }}>Flipper Tag IDs</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0' }}>Left Flipper Tag</label>
+                  <input 
+                    type="text" 
+                    value={flipperTagLeft}
+                    onChange={(e) => setFlipperTagLeft(e.target.value)}
+                    placeholder="e.g. ZZ-1234"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0' }}>Right Flipper Tag</label>
+                  <input 
+                    type="text" 
+                    value={flipperTagRight}
+                    onChange={(e) => setFlipperTagRight(e.target.value)}
+                    placeholder="e.g. ZZ-1235"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Carapace measurements */}
+            <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.3)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label className="form-label" style={{ marginBottom: 0 }}>Carapace Measurements (cm)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0', whiteSpace: 'nowrap' }}>Notch-to-Notch</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    value={carapaceNotchToNotch}
+                    onChange={(e) => setCarapaceNotchToNotch(e.target.value)}
+                    placeholder="e.g. 98.5"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0', whiteSpace: 'nowrap' }}>Notch-to-Tip</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    value={carapaceNotchToTip}
+                    onChange={(e) => setCarapaceNotchToTip(e.target.value)}
+                    placeholder="e.g. 101.2"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0', whiteSpace: 'nowrap' }}>Widest Point</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    value={carapaceWidestPoint}
+                    onChange={(e) => setCarapaceWidestPoint(e.target.value)}
+                    placeholder="e.g. 85.0"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <button className="btn btn-danger" onClick={onCancel} style={{ flex: 1 }}>Cancel</button>
+            <button className="btn btn-primary" onClick={() => setStep(2)} style={{ flex: 1 }}>
+              Next <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 1/2: INITIAL PHOTOS */}
+      {((step === 1 && !isTurtleEncounter) || (step === 2 && isTurtleEncounter)) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff', marginBottom: '8px' }}>Step 1: Initial Crawl Photos</h3>
+            <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff', marginBottom: '8px' }}>
+              {isTurtleEncounter ? 'Step 2: Initial Crawl Photos' : 'Step 1: Initial Crawl Photos'}
+            </h3>
             <p style={{ fontSize: '0.8rem', color: '#8892b0', marginBottom: '16px' }}>Capture photos of tracks and suspected body pit before probing.</p>
             
             <label className="btn btn-secondary" style={{ width: '100%', cursor: 'pointer', padding: '16px', borderRadius: '12px' }}>
@@ -140,19 +306,25 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <button className="btn btn-danger" onClick={onCancel} style={{ flex: 1 }}>Cancel</button>
-            <button className="btn btn-primary" onClick={() => setStep(2)} style={{ flex: 1 }}>
+            {isTurtleEncounter ? (
+              <button className="btn btn-secondary" onClick={() => setStep(1)} style={{ flex: 1 }}>
+                <ArrowLeft size={16} /> Back
+              </button>
+            ) : (
+              <button className="btn btn-danger" onClick={onCancel} style={{ flex: 1 }}>Cancel</button>
+            )}
+            <button className="btn btn-primary" onClick={() => setStep(prev => prev + 1)} style={{ flex: 1 }}>
               Next <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 2: CRAWL DIAGNOSIS */}
-      {step === 2 && (
+      {/* STEP 2/3: CRAWL DIAGNOSIS */}
+      {((step === 2 && !isTurtleEncounter) || (step === 3 && isTurtleEncounter)) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff', marginBottom: '16px' }}>Step 2: Crawl Type & Diagnosis</h3>
+            <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff', marginBottom: '16px' }}>Step 3: Crawl Type & Diagnosis</h3>
             
             {/* Toggle choice */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
@@ -259,18 +431,18 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(1)}>
+            <button className="btn btn-secondary" onClick={() => setStep(prev => prev - 1)}>
               <ArrowLeft size={16} /> Back
             </button>
-            <button className="btn btn-primary" onClick={() => setStep(3)}>
+            <button className="btn btn-primary" onClick={() => setStep(prev => prev + 1)}>
               Next <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3: SETUP & LOGGING */}
-      {step === 3 && (
+      {/* STEP 3/4: SETUP & LOGGING */}
+      {((step === 3 && !isTurtleEncounter) || (step === 4 && isTurtleEncounter)) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           {/* NEST FLOW */}
@@ -495,22 +667,24 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(2)}>
+            <button className="btn btn-secondary" onClick={() => setStep(prev => prev - 1)}>
               <ArrowLeft size={16} /> Back
             </button>
-            <button className="btn btn-primary" onClick={() => setStep(4)}>
+            <button className="btn btn-primary" onClick={() => setStep(prev => prev + 1)}>
               Next <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 4: CARDS & NOTES & FINALIZE */}
-      {step === 4 && (
+      {/* STEP 4/5: CARDS & NOTES & FINALIZE */}
+      {((step === 4 && !isTurtleEncounter) || (step === 5 && isTurtleEncounter)) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff' }}>
-              {crawlType === 'nest' ? 'Step 4: Finalize Nest Card' : 'Step 4: Finalize Crawl Card'}
+              {crawlType === 'nest' 
+                ? `Step ${isTurtleEncounter ? 5 : 4}: Finalize Nest Card` 
+                : `Step ${isTurtleEncounter ? 5 : 4}: Finalize Crawl Card`}
             </h3>
 
             {/* Nest card confirmation */}
@@ -558,7 +732,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(3)}>
+            <button className="btn btn-secondary" onClick={() => setStep(prev => prev - 1)}>
               <ArrowLeft size={16} /> Back
             </button>
             <button className="btn btn-primary" onClick={handleSave} style={{ backgroundColor: '#64ffda', color: '#020c1b' }}>
