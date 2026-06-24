@@ -187,7 +187,8 @@ export default function NearbyRadar({ userLocation }) {
 
     const map = L.map(mapContainerRef.current, {
       zoomControl: true,
-      attributionControl: false
+      attributionControl: false,
+      maxZoom: 18
     }).setView([initialCenter.lat, initialCenter.lng], 16);
 
     mapRef.current = map;
@@ -221,7 +222,7 @@ export default function NearbyRadar({ userLocation }) {
     }
 
     tileLayerRef.current = L.tileLayer(url, {
-      maxZoom: 20,
+      maxZoom: 18,
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, viewMode]);

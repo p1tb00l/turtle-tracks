@@ -33,7 +33,8 @@ export default function MapView({ path = [], crawls = [], center = null }) {
 
     const map = L.map(mapContainerRef.current, {
       zoomControl: true,
-      attributionControl: false
+      attributionControl: false,
+      maxZoom: 18 // Prevent satellite imagery greyout
     }).setView([initialCenter.lat, initialCenter.lng], initialZoom);
 
     // Initial tile layer setup based on current mapStyle state
@@ -50,7 +51,7 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     }
 
     tileLayerRef.current = L.tileLayer(url, {
-      maxZoom: 20,
+      maxZoom: 18,
       attribution: attribution
     }).addTo(map);
 
@@ -87,7 +88,7 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     }
 
     tileLayerRef.current = L.tileLayer(url, {
-      maxZoom: 20,
+      maxZoom: 18,
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, mapReady]);

@@ -249,7 +249,8 @@ export default function GPXDatabase({ userLocation }) {
 
     const map = L.map(mapContainerRef.current, {
       zoomControl: true,
-      attributionControl: false
+      attributionControl: false,
+      maxZoom: 18
     }).setView([selectedWaypoint.lat, selectedWaypoint.lng], 16);
 
     mapRef.current = map;
@@ -324,7 +325,7 @@ export default function GPXDatabase({ userLocation }) {
     }
 
     tileLayerRef.current = L.tileLayer(url, {
-      maxZoom: 20,
+      maxZoom: 18,
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, selectedWaypoint]);
