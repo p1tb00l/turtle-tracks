@@ -315,17 +315,21 @@ export default function GPXDatabase({ userLocation }) {
 
     let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
     let attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+    let maxNativeZoom = 16;
 
     if (mapStyle === 'voyager') {
       url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     } else if (mapStyle === 'dark') {
       url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     }
 
     tileLayerRef.current = L.tileLayer(url, {
       maxZoom: 18,
+      maxNativeZoom: maxNativeZoom,
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, selectedWaypoint]);
@@ -380,7 +384,7 @@ export default function GPXDatabase({ userLocation }) {
         map.fitBounds([
           [userLocation.lat, userLocation.lng],
           [selectedWaypoint.lat, selectedWaypoint.lng]
-        ], { padding: [50, 50] });
+        ], { padding: [50, 50], maxZoom: 16 });
         setHasFitBounds(true);
       }
     } else {

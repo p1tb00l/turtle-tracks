@@ -41,17 +41,21 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     const currentStyle = localStorage.getItem('turtletracks_map_style') || 'satellite';
     let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
     let attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+    let maxNativeZoom = 16;
 
     if (currentStyle === 'voyager') {
       url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     } else if (currentStyle === 'dark') {
       url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     }
 
     tileLayerRef.current = L.tileLayer(url, {
       maxZoom: 18,
+      maxNativeZoom: maxNativeZoom,
       attribution: attribution
     }).addTo(map);
 
@@ -78,17 +82,21 @@ export default function MapView({ path = [], crawls = [], center = null }) {
 
     let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
     let attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+    let maxNativeZoom = 16;
 
     if (mapStyle === 'voyager') {
       url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     } else if (mapStyle === 'dark') {
       url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
       attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      maxNativeZoom = 18;
     }
 
     tileLayerRef.current = L.tileLayer(url, {
       maxZoom: 18,
+      maxNativeZoom: maxNativeZoom,
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, mapReady]);
@@ -177,7 +185,7 @@ export default function MapView({ path = [], crawls = [], center = null }) {
     // Zoom out slightly to include all markers if multiple exist
     if (markersRef.current.length > 0) {
       const group = new L.featureGroup(markersRef.current);
-      map.fitBounds(group.getBounds().pad(0.15));
+      map.fitBounds(group.getBounds().pad(0.15), { maxZoom: 16 });
     }
   }, [crawls, mapReady]);
 
