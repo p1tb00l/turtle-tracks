@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Compass, Download, ShieldAlert } from 'lucide-react';
+import { Compass, Download, ShieldAlert, Copy, Check } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { getIslandLocation } from '../utils/geocoding';
 import NearbyRadar from './NearbyRadar';
@@ -19,6 +19,28 @@ export default function GPSViewer() {
     return 'radar';
   });
   const canvasRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCoords = () => {
+    if (!location) return;
+    const coordText = `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
+    navigator.clipboard.writeText(coordText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const el = document.createElement('textarea');
+      el.value = coordText;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   useEffect(() => {
     if (location) {
@@ -271,10 +293,30 @@ export default function GPSViewer() {
           </div>
 
           {location && (
-            <button className="btn btn-primary" onClick={handleCaptureCard} style={{ width: '100%' }}>
-              <Download size={18} />
-              Save Coordinate Card
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-primary" onClick={handleCaptureCard} style={{ flex: 1 }}>
+                <Download size={18} />
+                Save Coordinate Card
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={handleCopyCoords}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  backgroundColor: copied ? 'rgba(100, 255, 218, 0.15)' : undefined,
+                  borderColor: copied ? '#64ffda' : undefined,
+                  color: copied ? '#64ffda' : undefined,
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {copied ? <Check size={18} /> : <Copy size={18} />}
+                {copied ? 'Copied!' : 'Copy Coordinates'}
+              </button>
+            </div>
           )}
         </>
       ) : activeSubTab === 'database' ? (
