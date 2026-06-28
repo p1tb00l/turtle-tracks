@@ -70,6 +70,14 @@ export default function SessionLibrary({ sessions, setSessions }) {
   const handleUpdatePhotoNotes = (crawlIndex, photoId, notes) => {
     const updatedSessions = sessions.map((s) => {
       if (s.id !== selectedSessionId) return s;
+      if (crawlIndex === -1) {
+        const currentPhotos = s.photos || [];
+        const updatedPhotos = currentPhotos.map((p) => {
+          if (p.id !== photoId) return p;
+          return { ...p, notes };
+        });
+        return { ...s, photos: updatedPhotos };
+      }
       const updatedCrawls = s.crawls.map((c, cIdx) => {
         if (cIdx !== crawlIndex) return c;
         const currentPhotos = c.photos || [];
@@ -145,8 +153,14 @@ export default function SessionLibrary({ sessions, setSessions }) {
   };
 
   const handleDownloadAllImages = (session) => {
-    // Collect all photos from crawls
+    // Collect all photos from crawls and overall session photos
     const allPhotos = [];
+    (session.photos || []).forEach((photo, pIdx) => {
+      allPhotos.push({
+        dataUrl: photo.dataUrl,
+        fileName: `Session_${session.id}_General_${pIdx + 1}_${photo.id}.png`
+      });
+    });
     (session.crawls || []).forEach((crawl, cIdx) => {
       (crawl.photos || []).forEach((photo, pIdx) => {
         allPhotos.push({
@@ -335,6 +349,66 @@ export default function SessionLibrary({ sessions, setSessions }) {
             <MapView path={selectedSession.path} crawls={selectedSession.crawls} />
           </div>
 
+          {/* General Session Photos Card */}
+          {selectedSession.photos && selectedSession.photos.length > 0 && (
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <h4 style={{ fontSize: '0.8rem', color: '#e6f1ff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                General Session Photos
+              </h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {selectedSession.photos.map((p, idx) => (
+                  <div key={p.id} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '6px', overflow: 'visible' }}>
+                    <img 
+                      src={p.dataUrl} 
+                      alt="General session detail" 
+                      onClick={() => setSelectedPreviewPhoto({ crawlIndex: -1, photo: p })}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover', 
+                        borderRadius: '6px', 
+                        border: '1.5px solid rgba(100, 255, 218, 0.2)',
+                        cursor: 'pointer' 
+                      }} 
+                      title="Click to view/download"
+                    />
+                    <button
+                      onClick={() => {
+                        const updatedPhotos = selectedSession.photos.filter(item => item.id !== p.id);
+                        const updatedSessions = sessions.map(s => {
+                          if (s.id !== selectedSession.id) return s;
+                          return { ...s, photos: updatedPhotos };
+                        });
+                        setSessions(updatedSessions);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '-5px',
+                        right: '-5px',
+                        backgroundColor: '#ff7a59',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '18px',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        cursor: 'pointer',
+                        padding: 0,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        zIndex: 5
+                      }}
+                      title="Remove Photo"
+                    >
+                      <X size={10} strokeWidth={3} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Patrol Notes Card */}
           <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -408,7 +482,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 }}
               >
                 <Download size={14} /> Download All Session Images ({
-                  (selectedSession.crawls || []).reduce((acc, c) => acc + (c.photos?.length || 0), 0)
+                  (selectedSession.photos?.length || 0) + (selectedSession.crawls || []).reduce((acc, c) => acc + (c.photos?.length || 0), 0)
                 })
               </button>
 
@@ -460,7 +534,19 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       {isNest ? (
                         <>
                           <div><strong>Status:</strong> {crawl.inSitu ? 'In Situ' : 'Relocated'}</div>
-                          {!crawl.inSitu && <div><strong>Egg Count:</strong> {crawl.eggCount || 'Not specified'}</div>}
+                          {!crawl.inSitu && (
+                            <>
+                              {crawl.totalEggCount !== undefined && crawl.totalEggCount !== null && (
+                                <div><strong>Total Eggs Found:</strong> {crawl.totalEggCount || '0'}</div>
+                              )}
+                              {crawl.relocatedEggCount !== undefined && crawl.relocatedEggCount !== null && (
+                                <div><strong>Relocated Eggs:</strong> {crawl.relocatedEggCount || '0'}</div>
+                              )}
+                              {(crawl.totalEggCount === undefined && crawl.eggCount) && (
+                                <div><strong>Egg Count:</strong> {crawl.eggCount}</div>
+                              )}
+                            </>
+                          )}
                           <div><strong>DNA Vial:</strong> {crawl.dnaVialNumber ? `#${crawl.dnaVialNumber}` : 'Not collected'}</div>
                           <div><strong>Cage Installed:</strong> {crawl.equipmentInstalled ? 'Yes' : 'No'}</div>
                         </>

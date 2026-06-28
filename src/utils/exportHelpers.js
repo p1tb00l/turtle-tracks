@@ -70,7 +70,12 @@ export function generateTextSummary(session) {
         text += `Is Nest In Situ?: ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}\n`;
         if (!crawl.inSitu && crawl.relocationCoords) {
           text += `  Relocation GPS: ${crawl.relocationCoords.lat.toFixed(6)}, ${crawl.relocationCoords.lng.toFixed(6)}\n`;
-          text += `  Relocated Eggs Count: ${crawl.eggCount || 'Not specified'}\n`;
+          if (crawl.totalEggCount !== undefined && crawl.totalEggCount !== null) {
+            text += `  Total Eggs Found: ${crawl.totalEggCount}\n`;
+            text += `  Relocated Eggs: ${crawl.relocatedEggCount}\n`;
+          } else {
+            text += `  Relocated Eggs Count: ${crawl.eggCount || 'Not specified'}\n`;
+          }
         }
         text += `DNA Vial Sample: ${crawl.dnaVialNumber ? 'Collected (Vial #' + crawl.dnaVialNumber + ')' : 'Not collected/broken'}\n`;
         text += `Nest Card Completed: ${crawl.nestCardDone ? 'Yes' : 'No'}\n`;
@@ -110,7 +115,7 @@ export function downloadFile(content, fileName, contentType) {
  * Exports session data to a CSV string.
  */
 export function exportToCSV(session) {
-  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Egg Count,DNA Vial,Equipment Installed,False Crawl Factors,Is Possible Nest,Notes\n';
+  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Equipment Installed,False Crawl Factors,Is Possible Nest,Notes\n';
   
   if (session.crawls) {
     session.crawls.forEach((c, idx) => {
@@ -124,7 +129,8 @@ export function exportToCSV(session) {
         c.inSitu !== undefined ? c.inSitu : '',
         c.relocationCoords?.lat || '',
         c.relocationCoords?.lng || '',
-        c.eggCount || '',
+        c.totalEggCount !== undefined && c.totalEggCount !== null ? c.totalEggCount : (c.eggCount || ''),
+        c.relocatedEggCount !== undefined && c.relocatedEggCount !== null ? c.relocatedEggCount : '',
         c.dnaVialNumber || '',
         c.equipmentInstalled || '',
         `"${c.falseCrawlFactors || ''}"`,
@@ -189,7 +195,12 @@ export function exportToHTML(session) {
               <div><strong>In Situ:</strong> ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}</div>
               ${!crawl.inSitu && crawl.relocationCoords ? `
                 <div><strong>Relocation Coordinates:</strong> ${crawl.relocationCoords.lat.toFixed(6)}, ${crawl.relocationCoords.lng.toFixed(6)}</div>
-                <div><strong>Egg Count:</strong> ${crawl.eggCount || 'Not specified'}</div>
+                ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? `
+                  <div><strong>Total Eggs Found:</strong> ${crawl.totalEggCount}</div>
+                  <div><strong>Relocated Eggs:</strong> ${crawl.relocatedEggCount}</div>
+                ` : `
+                  <div><strong>Egg Count:</strong> ${crawl.eggCount || 'Not specified'}</div>
+                `}
               ` : ''}
               <div><strong>DNA Vial:</strong> ${crawl.dnaVialNumber ? 'Vial #' + crawl.dnaVialNumber : 'Not collected'}</div>
               <div><strong>Protective Cage/Mesh:</strong> ${crawl.equipmentInstalled ? 'Installed' : 'Not installed'}</div>

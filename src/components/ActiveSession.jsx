@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Square, Plus, Map, List, Clock, Navigation } from 'lucide-react';
+import { Square, Plus, Map, List, Clock, Navigation, Camera, Upload, Trash2 } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { getIslandLocation } from '../utils/geocoding';
 import CrawlWizard from './CrawlWizard';
@@ -597,6 +597,112 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                     </div>
                   ))
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* Session Quick Cam Photos section */}
+          <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '0.72rem', color: '#8892b0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Session Photos (Quick Cam)
+              </label>
+              <span style={{ fontSize: '0.62rem', color: '#64ffda' }}>({(activeSession.photos || []).length} Saved)</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '10px', borderRadius: '8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Camera size={14} /> Take Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const updatedPhotos = [...(activeSession.photos || []), {
+                        id: Date.now().toString(),
+                        dataUrl: event.target.result,
+                        tag: 'Session Detail',
+                        timestamp: new Date().toISOString()
+                      }];
+                      const updatedSession = { ...activeSession, photos: updatedPhotos };
+                      setActiveSession(updatedSession);
+                      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                    };
+                    reader.readAsDataURL(file);
+                  }} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+              <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '10px', borderRadius: '8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Upload size={14} /> Upload Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const updatedPhotos = [...(activeSession.photos || []), {
+                        id: Date.now().toString(),
+                        dataUrl: event.target.result,
+                        tag: 'Session Detail',
+                        timestamp: new Date().toISOString()
+                      }];
+                      const updatedSession = { ...activeSession, photos: updatedPhotos };
+                      setActiveSession(updatedSession);
+                      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                    };
+                    reader.readAsDataURL(file);
+                  }} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+            </div>
+
+            {/* List session-level photos */}
+            {activeSession.photos && activeSession.photos.length > 0 && (
+              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', marginTop: '4px' }}>
+                {activeSession.photos.map(p => (
+                  <div key={p.id} style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                    <img 
+                      src={p.dataUrl} 
+                      alt="Session detail" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <button
+                      onClick={() => {
+                        const updatedPhotos = activeSession.photos.filter(item => item.id !== p.id);
+                        const updatedSession = { ...activeSession, photos: updatedPhotos };
+                        setActiveSession(updatedSession);
+                        localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        backgroundColor: 'rgba(255, 122, 89, 0.9)',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '16px',
+                        height: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                      title="Remove Photo"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

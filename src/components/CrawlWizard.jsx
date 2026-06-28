@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, MapPin, CheckSquare, ArrowRight, ArrowLeft, Save, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Camera, MapPin, CheckSquare, ArrowRight, ArrowLeft, Save, AlertTriangle, AlertCircle, Upload } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTurtleEncounter = false }) {
@@ -11,10 +11,12 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [tidelineRelation, setTidelineRelation] = useState('Above High Tideline');
   const [inSitu, setInSitu] = useState(true);
   const [dnaVialNumber, setDnaVialNumber] = useState('');
+  const [nestNumber, setNestNumber] = useState('');
   
   // Relocation specific states
   const [relocationCoords, setRelocationCoords] = useState(null);
-  const [eggCount, setEggCount] = useState('');
+  const [totalEggCount, setTotalEggCount] = useState('');
+  const [relocatedEggCount, setRelocatedEggCount] = useState('');
 
   // False Crawl state
   const [falseCrawlFactors, setFalseCrawlFactors] = useState('Simple U-turn');
@@ -40,6 +42,69 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     }
   }, [activeCoords, coordinates]);
 
+  // Retroactive watermarking effect
+  useEffect(() => {
+    if (!nestNumber) return;
+    
+    // Check if there are any unwatermarked photos
+    const hasUnwatermarked = photos.some(p => !p.watermarked);
+    if (!hasUnwatermarked) return;
+
+    // Process each unwatermarked photo
+    const watermarkText = `Nest #${nestNumber}`;
+    
+    Promise.all(photos.map(p => {
+      if (p.watermarked) return Promise.resolve(p);
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          
+          ctx.drawImage(img, 0, 0);
+          
+          const fontSize = Math.max(16, Math.round(canvas.width * 0.04));
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          
+          const textMetrics = ctx.measureText(watermarkText);
+          const padding = 15;
+          const x = canvas.width - textMetrics.width - padding;
+          const y = canvas.height - padding;
+          
+          ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
+          ctx.fillRect(
+            x - 6,
+            y - fontSize + 2,
+            textMetrics.width + 12,
+            fontSize + 6
+          );
+          
+          ctx.fillStyle = '#64ffda';
+          ctx.fillText(watermarkText, x, y);
+          
+          resolve({
+            ...p,
+            dataUrl: canvas.toDataURL('image/png'),
+            watermarked: true
+          });
+        };
+        img.onerror = () => {
+          // If image load fails, keep original photo
+          resolve(p);
+        };
+        img.src = p.dataUrl;
+      });
+    })).then(updatedPhotos => {
+      // Check if photos array changed to prevent infinite loops
+      if (JSON.stringify(updatedPhotos.map(p => p.dataUrl)) !== JSON.stringify(photos.map(p => p.dataUrl))) {
+        setPhotos(updatedPhotos);
+      }
+    });
+  }, [nestNumber, photos]);
+
   // Capture photos helper
   const handlePhotoUpload = (e, tag) => {
     const file = e.target.files[0];
@@ -47,11 +112,62 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setPhotos([...photos, {
-        id: Date.now().toString(),
-        dataUrl: event.target.result,
-        tag: tag
-      }]);
+      const dataUrl = event.target.result;
+      
+      // If we have a nest number, we watermark the photo
+      if (nestNumber) {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          
+          // Draw original image
+          ctx.drawImage(img, 0, 0);
+          
+          // Add watermark configuration
+          const watermarkText = `Nest #${nestNumber}`;
+          // Set font size proportional to image width
+          const fontSize = Math.max(16, Math.round(canvas.width * 0.04));
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          
+          // Measure text width to position in bottom right corner
+          const textMetrics = ctx.measureText(watermarkText);
+          const padding = 15;
+          const x = canvas.width - textMetrics.width - padding;
+          const y = canvas.height - padding;
+          
+          // Draw semi-transparent background card for readability
+          ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
+          ctx.fillRect(
+            x - 6,
+            y - fontSize + 2,
+            textMetrics.width + 12,
+            fontSize + 6
+          );
+          
+          // Draw text
+          ctx.fillStyle = '#64ffda'; // Primary Seafoam accent color
+          ctx.fillText(watermarkText, x, y);
+          
+          const watermarkedDataUrl = canvas.toDataURL('image/png');
+          setPhotos(prev => [...prev, {
+            id: Date.now().toString(),
+            dataUrl: watermarkedDataUrl,
+            tag: tag,
+            watermarked: true
+          }]);
+        };
+        img.src = dataUrl;
+      } else {
+        setPhotos(prev => [...prev, {
+          id: Date.now().toString(),
+          dataUrl: dataUrl,
+          tag: tag,
+          watermarked: false
+        }]);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -77,7 +193,8 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
         dnaVialNumber,
         equipmentInstalled,
         relocationCoords: !inSitu ? relocationCoords : null,
-        eggCount: !inSitu ? eggCount : null,
+        totalEggCount: !inSitu ? totalEggCount : null,
+        relocatedEggCount: !inSitu ? relocatedEggCount : null,
         nestCardDone,
         notes,
         isTurtleEncounter,
@@ -158,20 +275,32 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
               </div>
             </div>
 
-            {/* Photos section */}
+             {/* Photos section */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Turtle Photographs</label>
-              <label className="btn btn-secondary" style={{ width: '100%', cursor: 'pointer', padding: '12px', borderRadius: '10px', fontSize: '0.85rem' }}>
-                <Camera size={18} />
-                Capture Turtle Photo
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  onChange={(e) => handlePhotoUpload(e, 'Sea Turtle')} 
-                  style={{ display: 'none' }} 
-                />
-              </label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '12px', borderRadius: '10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Camera size={16} />
+                  Take Photo
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    onChange={(e) => handlePhotoUpload(e, 'Sea Turtle')} 
+                    style={{ display: 'none' }} 
+                  />
+                </label>
+                <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '12px', borderRadius: '10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Upload size={16} />
+                  Upload Photo
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => handlePhotoUpload(e, 'Sea Turtle')} 
+                    style={{ display: 'none' }} 
+                  />
+                </label>
+              </div>
 
               {photos.filter(p => p.tag === 'Sea Turtle').length > 0 && (
                 <div style={{ display: 'flex', gap: '10px', marginTop: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -278,17 +407,29 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
             </h3>
             <p style={{ fontSize: '0.8rem', color: '#8892b0', marginBottom: '16px' }}>Capture photos of tracks and suspected body pit before probing.</p>
             
-            <label className="btn btn-secondary" style={{ width: '100%', cursor: 'pointer', padding: '16px', borderRadius: '12px' }}>
-              <Camera size={20} />
-              Take Track/Body Pit Photo
-              <input 
-                type="file" 
-                accept="image/*" 
-                capture="environment" 
-                onChange={(e) => handlePhotoUpload(e, 'Initial Crawl')} 
-                style={{ display: 'none' }} 
-              />
-            </label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '14px', borderRadius: '12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Camera size={18} />
+                Take Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  onChange={(e) => handlePhotoUpload(e, 'Initial Crawl')} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+              <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '14px', borderRadius: '12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Upload size={18} />
+                Upload Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => handlePhotoUpload(e, 'Initial Crawl')} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+            </div>
 
             {/* List uploaded photos */}
             {photos.filter(p => p.tag === 'Initial Crawl').length > 0 && (
@@ -534,15 +675,33 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderColor: '#ff7a59' }}>
                   <h4 style={{ color: '#ff7a59', fontSize: '0.85rem', textTransform: 'uppercase' }}>Relocation Details</h4>
                   
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Number of Relocated Eggs</label>
-                    <input 
-                      type="number" 
-                      value={eggCount}
-                      onChange={(e) => setEggCount(e.target.value)}
-                      placeholder="e.g. 112"
-                      className="form-input"
-                    />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Total Eggs Found</label>
+                      <input 
+                        type="number" 
+                        step="1"
+                        min="0"
+                        value={totalEggCount}
+                        onChange={(e) => setTotalEggCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="e.g. 112"
+                        className="form-input"
+                        style={{ height: '38px', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Relocated Eggs</label>
+                      <input 
+                        type="number" 
+                        step="1"
+                        min="0"
+                        value={relocatedEggCount}
+                        onChange={(e) => setRelocatedEggCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="e.g. 110"
+                        className="form-input"
+                        style={{ height: '38px', fontSize: '0.85rem' }}
+                      />
+                    </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>
@@ -566,14 +725,33 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
               {/* DNA sample vial label checklist */}
               <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '15px' }}>
                 <label className="form-label">DNR DNA Sample Collection</label>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                  <input 
-                    type="text" 
-                    value={dnaVialNumber}
-                    onChange={(e) => setDnaVialNumber(e.target.value)}
-                    placeholder="Enter DNA research vial number"
-                    className="form-input"
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#8892b0' }}>Nest Number (integer)</span>
+                    <input 
+                      type="number" 
+                      step="1"
+                      min="1"
+                      value={nestNumber}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setNestNumber(val);
+                        if (val) {
+                          const yy = new Date().getFullYear().toString().slice(-2);
+                          setDnaVialNumber(`${yy}-DAU-${val}`);
+                        } else {
+                          setDnaVialNumber('');
+                        }
+                      }}
+                      placeholder="e.g. 84"
+                      className="form-input"
+                    />
+                  </div>
+                  {dnaVialNumber && (
+                    <div style={{ fontSize: '0.8rem', color: '#64ffda', marginTop: '4px' }}>
+                      <strong>Generated DNA Vial ID:</strong> {dnaVialNumber}
+                    </div>
+                  )}
                 </div>
                 <p style={{ fontSize: '0.7rem', color: '#8892b0', fontStyle: 'italic' }}>
                   Checklist: Remove 1 egg (or shell from broken egg). Label vial on side and cap top.
@@ -695,25 +873,60 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                 </span>
               </label>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                <label className="btn btn-secondary" style={{ flex: 1, padding: '8px 12px', fontSize: '0.75rem', cursor: 'pointer' }}>
-                  <Camera size={14} /> Card Front
-                  <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Front')} style={{ display: 'none' }} />
-                </label>
-                {crawlType === 'nest' && (
-                  <label className="btn btn-secondary" style={{ flex: 1, padding: '8px 12px', fontSize: '0.75rem', cursor: 'pointer' }}>
-                    <Camera size={14} /> Card Back
-                    <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Back')} style={{ display: 'none' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#8892b0', width: '80px', flexShrink: 0 }}>Card Front:</span>
+                  <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <Camera size={12} /> Camera
+                    <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Front')} style={{ display: 'none' }} />
                   </label>
+                  <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <Upload size={12} /> Upload
+                    <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Front')} style={{ display: 'none' }} />
+                  </label>
+                </div>
+
+                {crawlType === 'nest' && (
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#8892b0', width: '80px', flexShrink: 0 }}>Card Back:</span>
+                    <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      <Camera size={12} /> Camera
+                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Back')} style={{ display: 'none' }} />
+                    </label>
+                    <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      <Upload size={12} /> Upload
+                      <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Back')} style={{ display: 'none' }} />
+                    </label>
+                  </div>
+                )}
+
+                {crawlType === 'nest' && (
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', borderTop: '1px dashed rgba(48, 60, 85, 0.3)', paddingTop: '8px', marginTop: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#8892b0', width: '80px', flexShrink: 0 }}>Nest Photo:</span>
+                    <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      <Camera size={12} /> Camera
+                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Protected Nest Photo')} style={{ display: 'none' }} />
+                    </label>
+                    <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      <Upload size={12} /> Upload
+                      <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, 'Protected Nest Photo')} style={{ display: 'none' }} />
+                    </label>
+                  </div>
                 )}
               </div>
 
-              {/* Equipment Setup Photo */}
-              {crawlType === 'nest' && (
-                <label className="btn btn-secondary" style={{ padding: '8px 12px', fontSize: '0.75rem', cursor: 'pointer', marginTop: '4px' }}>
-                  <Camera size={14} /> Protected Nest Photo
-                  <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Protected Nest Photo')} style={{ display: 'none' }} />
-                </label>
+              {/* Show selected cards/photos previews */}
+              {photos.length > 0 && (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px', borderTop: '1px solid rgba(48, 60, 85, 0.2)', paddingTop: '8px' }}>
+                  {photos.filter(p => p.tag.includes('Nest Card') || p.tag.includes('Protected Nest')).map(p => (
+                    <div key={p.id} style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '4px', overflow: 'hidden' }}>
+                      <img src={p.dataUrl} alt={p.tag} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, fontSize: '0.5rem', background: 'rgba(2,12,27,0.8)', color: '#64ffda', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.tag.replace('Nest Card - ', '')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
