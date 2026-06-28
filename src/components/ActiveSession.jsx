@@ -369,10 +369,13 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   // Handle Crawl Documentation
   const handleSaveCrawl = (crawlData) => {
     const updatedCrawls = [...(activeSession.crawls || []), crawlData];
-    setActiveSession({
+    const updatedSession = {
       ...activeSession,
       crawls: updatedCrawls
-    });
+    };
+    setActiveSession(updatedSession);
+    // Explicitly write to localStorage to guarantee persistence against immediate app backgrounding
+    localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
     setShowWizard(false);
   };
 
@@ -596,6 +599,43 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                 )}
               </div>
             )}
+          </div>
+
+          {/* General Notes input for Active Session */}
+          <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '0.72rem', color: '#8892b0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Active Patrol Notes
+              </label>
+              <span style={{ fontSize: '0.62rem', color: '#64ffda' }}>Autosaved</span>
+            </div>
+            <textarea
+              placeholder="Record weather changes, tides, volunteers, or track details during patrol..."
+              value={activeSession.notes || ''}
+              onChange={(e) => {
+                const updatedNotes = e.target.value;
+                const updatedSession = { ...activeSession, notes: updatedNotes };
+                setActiveSession(updatedSession);
+                localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+              }}
+              style={{
+                width: '100%',
+                minHeight: '60px',
+                backgroundColor: 'rgba(2, 12, 27, 0.4)',
+                border: '1px solid rgba(48, 60, 85, 0.8)',
+                borderRadius: '8px',
+                color: '#e6f1ff',
+                padding: '8px 10px',
+                fontSize: '0.8rem',
+                lineHeight: '1.4',
+                resize: 'vertical',
+                outline: 'none',
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#64ffda'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(48, 60, 85, 0.8)'}
+            />
           </div>
 
           {/* Action Log Buttons */}

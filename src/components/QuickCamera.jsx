@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Trash2, Eye, Upload } from 'lucide-react';
+import { Camera, Trash2, Eye, Upload, Download } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function QuickCamera() {
@@ -37,6 +37,15 @@ export default function QuickCamera() {
     if (selectedPhoto && selectedPhoto.id === id) {
       setSelectedPhoto(null);
     }
+  };
+
+  const handleDownloadPhoto = (photo) => {
+    const link = document.createElement('a');
+    link.href = photo.dataUrl;
+    link.download = `${photo.tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
 
@@ -139,10 +148,19 @@ export default function QuickCamera() {
 
           </div>
 
-          <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#8892b0' }}>
-            <div><strong>Tag:</strong> <span style={{ color: '#64ffda' }}>{selectedPhoto.tag}</span></div>
-            {selectedPhoto.notes && <div style={{ marginTop: '4px' }}><strong>Comments:</strong> {selectedPhoto.notes}</div>}
-            <div style={{ marginTop: '4px', fontSize: '0.75rem' }}><strong>Logged:</strong> {new Date(selectedPhoto.timestamp).toLocaleString()}</div>
+          <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+              <div><strong>Tag:</strong> <span style={{ color: '#64ffda' }}>{selectedPhoto.tag}</span></div>
+              {selectedPhoto.notes && <div style={{ marginTop: '4px' }}><strong>Comments:</strong> {selectedPhoto.notes}</div>}
+              <div style={{ marginTop: '4px', fontSize: '0.75rem' }}><strong>Logged:</strong> {new Date(selectedPhoto.timestamp).toLocaleString()}</div>
+            </div>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => handleDownloadPhoto(selectedPhoto)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+            >
+              <Download size={16} /> Download Photo to Device
+            </button>
           </div>
         </div>
       )}

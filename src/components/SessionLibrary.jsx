@@ -144,6 +144,45 @@ export default function SessionLibrary({ sessions, setSessions }) {
     downloadFile(html, `TurtleTracks_Report_${session.id}.html`, 'text/html;charset=utf-8;');
   };
 
+  const handleDownloadAllImages = (session) => {
+    // Collect all photos from crawls
+    const allPhotos = [];
+    (session.crawls || []).forEach((crawl, cIdx) => {
+      (crawl.photos || []).forEach((photo, pIdx) => {
+        allPhotos.push({
+          dataUrl: photo.dataUrl,
+          fileName: `Session_${session.id}_Crawl_${cIdx + 1}_${photo.tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id}.png`
+        });
+      });
+    });
+
+    if (allPhotos.length === 0) {
+      alert("No photos logged in this session to download.");
+      return;
+    }
+
+    // Download each file sequentially
+    allPhotos.forEach((photo, index) => {
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = photo.dataUrl;
+        link.download = photo.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, index * 300); // 300ms delay to prevent browser download blocking
+    });
+  };
+
+  const handleDownloadSingleImage = (photo, tag) => {
+    const link = document.createElement('a');
+    link.href = photo.dataUrl;
+    link.download = `${tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id || Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -353,6 +392,24 @@ export default function SessionLibrary({ sessions, setSessions }) {
 
               <button className="btn btn-secondary" onClick={() => handleDownloadCSV(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
                 <Download size={14} /> CSV Spreadsheet
+              </button>
+
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => handleDownloadAllImages(selectedSession)} 
+                style={{ 
+                  padding: '10px 12px', 
+                  fontSize: '0.78rem', 
+                  borderRadius: '8px', 
+                  gridColumn: 'span 2', 
+                  backgroundColor: 'rgba(100, 255, 218, 0.05)', 
+                  border: '1px solid rgba(100, 255, 218, 0.3)',
+                  color: '#64ffda'
+                }}
+              >
+                <Download size={14} /> Download All Session Images ({
+                  (selectedSession.crawls || []).reduce((acc, c) => acc + (c.photos?.length || 0), 0)
+                })
               </button>
 
               <button 
@@ -703,13 +760,22 @@ export default function SessionLibrary({ sessions, setSessions }) {
               />
             </div>
             
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setSelectedPreviewPhoto(null)}
-              style={{ padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
-            >
-              Done
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => handleDownloadSingleImage(selectedPreviewPhoto.photo, selectedPreviewPhoto.photo.tag)}
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                <Download size={16} /> Download Photo
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => setSelectedPreviewPhoto(null)}
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

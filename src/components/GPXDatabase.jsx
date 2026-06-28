@@ -678,6 +678,41 @@ export default function GPXDatabase({ userLocation }) {
             ) : (
               processedWaypoints.map(wp => {
                 const config = SUBTYPES_CONFIG[wp.subtype] || SUBTYPES_CONFIG.in_situ;
+                
+                // Parse date and calculate age if it is a nest
+                const isNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+                let ageDays = null;
+                let ageColor = null;
+                let ageLabel = '';
+                
+                if (isNest) {
+                  // Extract date from name: YYYY-MM-DD or YYYY/MM/DD
+                  const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+                  let nestDate = null;
+                  if (dateMatch) {
+                    nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+                  } else if (wp.timestamp) {
+                    nestDate = new Date(wp.timestamp);
+                  }
+                  
+                  if (nestDate && !isNaN(nestDate.getTime())) {
+                    const diffTime = Math.abs(new Date() - nestDate);
+                    ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    ageLabel = ` (${ageDays}d)`;
+                    
+                    if (ageDays > 65) {
+                      ageColor = '#ff7a59'; // Red/Coral
+                    } else if (ageDays > 55) {
+                      ageColor = '#f4a261'; // Orange
+                    } else if (ageDays > 45) {
+                      ageColor = '#fde047'; // Yellow
+                    }
+                  }
+                }
+
+                const isInventoried = wp.name.toLowerCase().includes('inventoried');
+                const cardBorderColor = ageColor || config.color;
+
                 return (
                   <div
                     key={wp.id}
@@ -687,7 +722,7 @@ export default function GPXDatabase({ userLocation }) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      borderLeft: `4px solid ${config.color}`,
+                      borderLeft: `4px solid ${cardBorderColor}`,
                       cursor: 'pointer',
                       transition: 'background-color 0.2s ease, transform 0.2s ease',
                       padding: '12px 14px'
@@ -709,15 +744,24 @@ export default function GPXDatabase({ userLocation }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '16px',
-                        border: `1.5px solid ${config.color}`,
+                        border: `1.5px solid ${cardBorderColor}`,
                         flexShrink: 0
                       }}>
                         {config.symbol}
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: '0.85rem', color: '#e6f1ff', fontWeight: '600', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                          {wp.name}
+                        <span style={{ 
+                          fontSize: '0.85rem', 
+                          color: ageColor || '#e6f1ff', 
+                          fontWeight: '600', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'hidden',
+                          textDecoration: isInventoried ? 'line-through' : 'none',
+                          opacity: isInventoried ? 0.6 : 1
+                        }}>
+                          {wp.name}{ageLabel}
                         </span>
                         <span style={{ fontSize: '0.72rem', color: '#8892b0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '1px' }}>
                           {config.label} {wp.desc ? `• ${wp.desc}` : ''}
@@ -728,7 +772,7 @@ export default function GPXDatabase({ userLocation }) {
                     <div style={{ textAlign: 'right', marginLeft: '12px', flexShrink: 0 }}>
                       {wp.formattedDistance ? (
                         <>
-                          <strong style={{ color: config.color, fontSize: '0.9rem', display: 'block', fontFamily: 'monospace' }}>
+                          <strong style={{ color: cardBorderColor, fontSize: '0.9rem', display: 'block', fontFamily: 'monospace' }}>
                             {wp.formattedDistance}
                           </strong>
                           <span style={{ fontSize: '0.6rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '2px', justifyContent: 'flex-end' }}>
