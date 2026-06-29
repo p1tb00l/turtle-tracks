@@ -42,69 +42,6 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     }
   }, [activeCoords, coordinates]);
 
-  // Retroactive watermarking effect
-  useEffect(() => {
-    if (!nestNumber) return;
-    
-    // Check if there are any unwatermarked photos
-    const hasUnwatermarked = photos.some(p => !p.watermarked);
-    if (!hasUnwatermarked) return;
-
-    // Process each unwatermarked photo
-    const watermarkText = `Nest #${nestNumber}`;
-    
-    Promise.all(photos.map(p => {
-      if (p.watermarked) return Promise.resolve(p);
-
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.naturalWidth || img.width;
-          canvas.height = img.naturalHeight || img.height;
-          const ctx = canvas.getContext('2d');
-          
-          ctx.drawImage(img, 0, 0);
-          
-          const fontSize = Math.max(16, Math.round(canvas.width * 0.04));
-          ctx.font = `bold ${fontSize}px sans-serif`;
-          
-          const textMetrics = ctx.measureText(watermarkText);
-          const padding = 15;
-          const x = canvas.width - textMetrics.width - padding;
-          const y = canvas.height - padding;
-          
-          ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
-          ctx.fillRect(
-            x - 6,
-            y - fontSize + 2,
-            textMetrics.width + 12,
-            fontSize + 6
-          );
-          
-          ctx.fillStyle = '#64ffda';
-          ctx.fillText(watermarkText, x, y);
-          
-          resolve({
-            ...p,
-            dataUrl: canvas.toDataURL('image/png'),
-            watermarked: true
-          });
-        };
-        img.onerror = () => {
-          // If image load fails, keep original photo
-          resolve(p);
-        };
-        img.src = p.dataUrl;
-      });
-    })).then(updatedPhotos => {
-      // Check if photos array changed to prevent infinite loops
-      if (JSON.stringify(updatedPhotos.map(p => p.dataUrl)) !== JSON.stringify(photos.map(p => p.dataUrl))) {
-        setPhotos(updatedPhotos);
-      }
-    });
-  }, [nestNumber, photos]);
-
   // Capture photos helper
   const handlePhotoUpload = (e, tag) => {
     const file = e.target.files[0];
@@ -127,9 +64,10 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           ctx.drawImage(img, 0, 0);
           
           // Add watermark configuration
-          const watermarkText = `Nest #${nestNumber}`;
+          const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+          const watermarkText = `Nest #${nestNumber} - ${todayStr}`;
           // Set font size proportional to image width
-          const fontSize = Math.max(16, Math.round(canvas.width * 0.04));
+          const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
           ctx.font = `bold ${fontSize}px sans-serif`;
           
           // Measure text width to position in bottom right corner
@@ -179,51 +117,96 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   };
 
   const handleSave = () => {
-    // Validate core checklists
-    if (crawlType === 'nest') {
-      const equipmentInstalled = true;
-      
-      onSaveCrawl({
-        type: 'nest',
-        timestamp: new Date().toISOString(),
-        coordinates,
-        photos,
-        tidelineRelation,
-        inSitu,
-        dnaVialNumber,
-        equipmentInstalled,
-        relocationCoords: !inSitu ? relocationCoords : null,
-        totalEggCount: !inSitu ? totalEggCount : null,
-        relocatedEggCount: !inSitu ? relocatedEggCount : null,
-        nestCardDone,
-        notes,
-        isTurtleEncounter,
-        flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
-        flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
-        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+    // Helper to proceed with actual saving
+    const saveWithPhotos = (processedPhotos) => {
+      if (crawlType === 'nest') {
+        const equipmentInstalled = true;
+        onSaveCrawl({
+          type: 'nest',
+          timestamp: new Date().toISOString(),
+          coordinates,
+          photos: processedPhotos,
+          tidelineRelation,
+          inSitu,
+          dnaVialNumber,
+          equipmentInstalled,
+          relocationCoords: !inSitu ? relocationCoords : null,
+          totalEggCount: !inSitu ? totalEggCount : null,
+          relocatedEggCount: !inSitu ? relocatedEggCount : null,
+          nestCardDone,
+          notes,
+          isTurtleEncounter,
+          flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
+          flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+        });
+      } else {
+        onSaveCrawl({
+          type: 'false_crawl',
+          timestamp: new Date().toISOString(),
+          coordinates,
+          photos: processedPhotos,
+          tidelineRelation,
+          falseCrawlFactors,
+          crossedOut,
+          isPossibleNest,
+          markedPost: isPossibleNest ? markedPost : false,
+          nestCardDone,
+          notes,
+          isTurtleEncounter,
+          flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
+          flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+        });
+      }
+    };
+
+    // If we have a nest number and unwatermarked photos, apply watermarks retroactively now
+    const unwatermarkedPhotos = photos.filter(p => !p.watermarked);
+    if (nestNumber && unwatermarkedPhotos.length > 0) {
+      const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      const watermarkText = `Nest #${nestNumber} - ${todayStr}`;
+      Promise.all(photos.map(p => {
+        if (p.watermarked) return Promise.resolve(p);
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            const textMetrics = ctx.measureText(watermarkText);
+            const padding = 15;
+            const x = canvas.width - textMetrics.width - padding;
+            const y = canvas.height - padding;
+            
+            ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
+            ctx.fillRect(x - 6, y - fontSize + 2, textMetrics.width + 12, fontSize + 6);
+            ctx.fillStyle = '#64ffda';
+            ctx.fillText(watermarkText, x, y);
+            
+            resolve({
+              ...p,
+              dataUrl: canvas.toDataURL('image/png'),
+              watermarked: true
+            });
+          };
+          img.onerror = () => resolve(p);
+          img.src = p.dataUrl;
+        });
+      })).then(updatedPhotos => {
+        saveWithPhotos(updatedPhotos);
       });
     } else {
-      onSaveCrawl({
-        type: 'false_crawl',
-        timestamp: new Date().toISOString(),
-        coordinates,
-        photos,
-        tidelineRelation,
-        falseCrawlFactors,
-        crossedOut,
-        isPossibleNest,
-        markedPost: isPossibleNest ? markedPost : false,
-        nestCardDone,
-        notes,
-        isTurtleEncounter,
-        flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
-        flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
-        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
-      });
+      saveWithPhotos(photos);
     }
   };
 
