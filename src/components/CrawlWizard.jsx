@@ -29,8 +29,8 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [coordinates, setCoordinates] = useState(null);
 
   // Turtle Encounter Form State
-  const [flipperTagLeft, setFlipperTagLeft] = useState('');
-  const [flipperTagRight, setFlipperTagRight] = useState('');
+  const [tagsFound, setTagsFound] = useState(false);
+  const [flipperPitTag, setFlipperPitTag] = useState('');
   const [carapaceNotchToNotch, setCarapaceNotchToNotch] = useState('');
   const [carapaceNotchToTip, setCarapaceNotchToTip] = useState('');
   const [carapaceWidestPoint, setCarapaceWidestPoint] = useState('');
@@ -136,8 +136,8 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           nestCardDone,
           notes,
           isTurtleEncounter,
-          flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
-          flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+          tagsFound: isTurtleEncounter ? tagsFound : false,
+          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
           carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
           carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
           carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
@@ -156,8 +156,8 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           nestCardDone,
           notes,
           isTurtleEncounter,
-          flipperTagLeft: isTurtleEncounter ? flipperTagLeft : '',
-          flipperTagRight: isTurtleEncounter ? flipperTagRight : '',
+          tagsFound: isTurtleEncounter ? tagsFound : false,
+          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
           carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
           carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
           carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
@@ -277,7 +277,22 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
 
              {/* Photos section */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Turtle Photographs</label>
+              <label className="form-label" style={{ marginBottom: '4px' }}>Turtle Photographs</label>
+              <p style={{ fontSize: '0.75rem', color: '#8892b0', marginTop: 0, marginBottom: '8px', lineHeight: '1.3' }}>
+                Capture clear photos of the turtle's entire body, any visible ID tags, and any old injuries or markings.
+              </p>
+              <div style={{
+                backgroundColor: 'rgba(255, 122, 89, 0.08)',
+                border: '1px dashed rgba(255, 122, 89, 0.4)',
+                borderRadius: '8px',
+                padding: '10px',
+                fontSize: '0.72rem',
+                color: '#ff7a59',
+                marginBottom: '12px',
+                lineHeight: '1.3'
+              }}>
+                <strong>Stranded or Injured Turtle?</strong> Call Turtle Patrol Leadership immediately for guidance.
+              </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <label className="btn btn-secondary" style={{ flex: 1, cursor: 'pointer', padding: '12px', borderRadius: '10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <Camera size={16} />
@@ -318,31 +333,62 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
 
             {/* Flipper tags */}
             <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.3)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>Flipper Tag IDs</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0' }}>Left Flipper Tag</label>
-                  <input 
-                    type="text" 
-                    value={flipperTagLeft}
-                    onChange={(e) => setFlipperTagLeft(e.target.value)}
-                    placeholder="e.g. ZZ-1234"
-                    className="form-input"
-                    style={{ fontSize: '0.8rem', height: '36px' }}
-                  />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0' }}>Right Flipper Tag</label>
-                  <input 
-                    type="text" 
-                    value={flipperTagRight}
-                    onChange={(e) => setFlipperTagRight(e.target.value)}
-                    placeholder="e.g. ZZ-1235"
-                    className="form-input"
-                    style={{ fontSize: '0.8rem', height: '36px' }}
-                  />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="form-label" style={{ margin: 0 }}>Were tags found on the turtle?</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagsFound(true);
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: `1.5px solid ${tagsFound ? '#64ffda' : 'rgba(48, 60, 85, 0.6)'}`,
+                      backgroundColor: tagsFound ? 'rgba(100, 255, 218, 0.1)' : 'transparent',
+                      color: tagsFound ? '#64ffda' : '#8892b0',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagsFound(false);
+                      setFlipperPitTag('');
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: `1.5px solid ${!tagsFound ? '#ff7a59' : 'rgba(48, 60, 85, 0.6)'}`,
+                      backgroundColor: !tagsFound ? 'rgba(255, 122, 89, 0.1)' : 'transparent',
+                      color: !tagsFound ? '#ff7a59' : '#8892b0',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    No
+                  </button>
                 </div>
               </div>
+
+              {tagsFound && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#8892b0' }}>Flipper / PIT Tag</label>
+                  <input 
+                    type="text" 
+                    value={flipperPitTag}
+                    onChange={(e) => setFlipperPitTag(e.target.value)}
+                    placeholder="Enter flipper or PIT tag number (e.g. ZZ-1234)"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '36px' }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Carapace measurements */}

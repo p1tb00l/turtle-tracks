@@ -79,7 +79,9 @@ export function generateTextSummary(session) {
         }
         text += `DNA Vial Sample: ${crawl.dnaVialNumber ? 'Collected (Vial #' + crawl.dnaVialNumber + ')' : 'Not collected/broken'}\n`;
         text += `Nest Card Completed: ${crawl.nestCardDone ? 'Yes' : 'No'}\n`;
-        text += `Protective Equipment Installed: ${crawl.equipmentInstalled ? 'Yes' : 'No'}\n`;
+        if (crawl.isTurtleEncounter) {
+          text += `Turtle Encounter Logged: Yes ${crawl.flipperPitTag ? '(Tag: ' + crawl.flipperPitTag + ')' : (crawl.flipperTagLeft || crawl.flipperTagRight ? '(Tags: ' + (crawl.flipperTagLeft || 'None') + '/' + (crawl.flipperTagRight || 'None') + ')' : '')}\n`;
+        }
       } else {
         text += `False Crawl Factors: ${crawl.falseCrawlFactors || 'None observed'}\n`;
         text += `Crawl Crossed Out: ${crawl.crossedOut ? 'Yes' : 'No'}\n`;
@@ -115,7 +117,7 @@ export function downloadFile(content, fileName, contentType) {
  * Exports session data to a CSV string.
  */
 export function exportToCSV(session) {
-  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Equipment Installed,False Crawl Factors,Is Possible Nest,Notes\n';
+  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Flipper/PIT Tag,False Crawl Factors,Is Possible Nest,Notes\n';
   
   if (session.crawls) {
     session.crawls.forEach((c, idx) => {
@@ -132,7 +134,7 @@ export function exportToCSV(session) {
         c.totalEggCount !== undefined && c.totalEggCount !== null ? c.totalEggCount : (c.eggCount || ''),
         c.relocatedEggCount !== undefined && c.relocatedEggCount !== null ? c.relocatedEggCount : '',
         c.dnaVialNumber || '',
-        c.equipmentInstalled || '',
+        c.isTurtleEncounter ? `"${c.flipperPitTag || (c.flipperTagLeft || c.flipperTagRight ? (c.flipperTagLeft || '') + '/' + (c.flipperTagRight || '') : '')}"` : '""',
         `"${c.falseCrawlFactors || ''}"`,
         c.isPossibleNest || '',
         `"${(c.notes || '').replace(/"/g, '""')}"`
@@ -203,7 +205,11 @@ export function exportToHTML(session) {
                 `}
               ` : ''}
               <div><strong>DNA Vial:</strong> ${crawl.dnaVialNumber ? 'Vial #' + crawl.dnaVialNumber : 'Not collected'}</div>
-              <div><strong>Protective Cage/Mesh:</strong> ${crawl.equipmentInstalled ? 'Installed' : 'Not installed'}</div>
+              ${crawl.isTurtleEncounter ? `
+                <div style="grid-column: span 2; color: #a5b4fc; font-weight: bold; margin-top: 4px;">
+                  🐢 Turtle Encounter Logged ${crawl.flipperPitTag ? `(Tag: ${crawl.flipperPitTag})` : (crawl.flipperTagLeft || crawl.flipperTagRight ? `(Tags: ${crawl.flipperTagLeft || 'None'}/${crawl.flipperTagRight || 'None'})` : '')}
+                </div>
+              ` : ''}
             ` : `
               <div><strong>Factors:</strong> ${crawl.falseCrawlFactors || 'None logged'}</div>
               <div><strong>Crossed Out:</strong> ${crawl.crossedOut ? 'Yes' : 'No'}</div>

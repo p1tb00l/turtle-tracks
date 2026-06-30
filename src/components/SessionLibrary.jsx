@@ -548,7 +548,11 @@ export default function SessionLibrary({ sessions, setSessions }) {
                             </>
                           )}
                           <div><strong>DNA Vial:</strong> {crawl.dnaVialNumber ? `#${crawl.dnaVialNumber}` : 'Not collected'}</div>
-                          <div><strong>Cage Installed:</strong> {crawl.equipmentInstalled ? 'Yes' : 'No'}</div>
+                          {crawl.isTurtleEncounter && (
+                            <div style={{ color: '#a5b4fc', marginTop: '4px', fontWeight: '600' }}>
+                              🐢 Turtle Encounter Logged {crawl.flipperPitTag ? `(Tag: ${crawl.flipperPitTag})` : (crawl.flipperTagLeft || crawl.flipperTagRight ? `(Tags: ${crawl.flipperTagLeft || 'None'}/${crawl.flipperTagRight || 'None'})` : '')}
+                            </div>
+                          )}
                         </>
                       ) : (
                         <>
