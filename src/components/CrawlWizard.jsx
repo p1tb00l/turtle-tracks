@@ -170,40 +170,57 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     if (nestNumber && unwatermarkedPhotos.length > 0) {
       const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
       const watermarkText = `Nest #${nestNumber} - ${todayStr}`;
+      
       Promise.all(photos.map(p => {
         if (p.watermarked) return Promise.resolve(p);
         return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth || img.width;
-            canvas.height = img.naturalHeight || img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            const textMetrics = ctx.measureText(watermarkText);
-            const padding = 15;
-            const x = canvas.width - textMetrics.width - padding;
-            const y = canvas.height - padding;
-            
-            ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
-            ctx.fillRect(x - 6, y - fontSize + 2, textMetrics.width + 12, fontSize + 6);
-            ctx.fillStyle = '#64ffda';
-            ctx.fillText(watermarkText, x, y);
-            
-            resolve({
-              ...p,
-              dataUrl: canvas.toDataURL('image/png'),
-              watermarked: true
-            });
-          };
-          img.onerror = () => resolve(p);
-          img.src = p.dataUrl;
+          try {
+            const img = new Image();
+            img.onload = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                const textMetrics = ctx.measureText(watermarkText);
+                const padding = 15;
+                const x = canvas.width - textMetrics.width - padding;
+                const y = canvas.height - padding;
+                
+                ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
+                ctx.fillRect(x - 6, y - fontSize + 2, textMetrics.width + 12, fontSize + 6);
+                ctx.fillStyle = '#64ffda';
+                ctx.fillText(watermarkText, x, y);
+                
+                resolve({
+                  ...p,
+                  dataUrl: canvas.toDataURL('image/png'),
+                  watermarked: true
+                });
+              } catch (err) {
+                console.error("Watermark canvas drawing failed, using fallback:", err);
+                resolve(p);
+              }
+            };
+            img.onerror = (e) => {
+              console.error("Watermark image load failed:", e);
+              resolve(p);
+            };
+            img.src = p.dataUrl;
+          } catch (err) {
+            console.error("Watermark setup failed:", err);
+            resolve(p);
+          }
         });
       })).then(updatedPhotos => {
         saveWithPhotos(updatedPhotos);
+      }).catch(err => {
+        console.error("Promise.all for watermarks failed, saving original photos:", err);
+        saveWithPhotos(photos);
       });
     } else {
       saveWithPhotos(photos);
