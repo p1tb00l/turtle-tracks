@@ -529,7 +529,14 @@ export default function SessionLibrary({ sessions, setSessions }) {
                     </div>
 
                     <div style={{ fontSize: '0.8rem', color: '#8892b0' }}>
-                      <div><strong>GPS:</strong> {crawl.coordinates?.lat.toFixed(6)}, {crawl.coordinates?.lng.toFixed(6)}</div>
+                      {isNest && !crawl.inSitu ? (
+                        <>
+                          <div><strong>Original GPS:</strong> {crawl.coordinates?.lat.toFixed(6)}, {crawl.coordinates?.lng.toFixed(6)}</div>
+                          <div><strong>Relocated GPS:</strong> {crawl.relocationCoords ? `${crawl.relocationCoords.lat.toFixed(6)}, ${crawl.relocationCoords.lng.toFixed(6)}` : 'Not recorded'}</div>
+                        </>
+                      ) : (
+                        <div><strong>GPS:</strong> {crawl.coordinates?.lat.toFixed(6)}, {crawl.coordinates?.lng.toFixed(6)}</div>
+                      )}
                       <div><strong>Position:</strong> {crawl.tidelineRelation}</div>
                       {isNest ? (
                         <>
@@ -557,8 +564,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       ) : (
                         <>
                           <div><strong>Factors:</strong> {crawl.falseCrawlFactors}</div>
-                          <div><strong>Crossed Out:</strong> {crawl.crossedOut ? 'Yes' : 'No'}</div>
-                          {crawl.isPossibleNest && <div><strong>Possible Nest:</strong> Marked with post</div>}
+                          {crawl.isPossibleNest && <div><strong>Possible Nest:</strong> Yes</div>}
                         </>
                       )}
                       {crawl.notes && <div style={{ marginTop: '4px' }}><strong>Notes:</strong> {crawl.notes}</div>}

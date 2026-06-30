@@ -67,9 +67,14 @@ export function generateTextSummary(session) {
       text += `Relative to Tideline: ${crawl.tidelineRelation || 'Not recorded'}\n`;
       
       if (crawl.type === 'nest') {
+        if (!crawl.inSitu) {
+          // Relocated nests have both Original and Relocation GPS
+          text = text.replace(`GPS Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`, '');
+          text += `Original GPS Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
+          text += `Relocated GPS Coordinates: ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}\n`;
+        }
         text += `Is Nest In Situ?: ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}\n`;
-        if (!crawl.inSitu && crawl.relocationCoords) {
-          text += `  Relocation GPS: ${crawl.relocationCoords.lat.toFixed(6)}, ${crawl.relocationCoords.lng.toFixed(6)}\n`;
+        if (!crawl.inSitu) {
           if (crawl.totalEggCount !== undefined && crawl.totalEggCount !== null) {
             text += `  Total Eggs Found: ${crawl.totalEggCount}\n`;
             text += `  Relocated Eggs: ${crawl.relocatedEggCount}\n`;
@@ -84,8 +89,9 @@ export function generateTextSummary(session) {
         }
       } else {
         text += `False Crawl Factors: ${crawl.falseCrawlFactors || 'None observed'}\n`;
-        text += `Crawl Crossed Out: ${crawl.crossedOut ? 'Yes' : 'No'}\n`;
-        text += `Is Possible Nest?: ${crawl.isPossibleNest ? 'Yes' : 'No'}\n`;
+        if (crawl.isPossibleNest) {
+          text += `Is Possible Nest?: Yes\n`;
+        }
       }
       
       if (crawl.notes) {
@@ -191,12 +197,16 @@ export function exportToHTML(session) {
           
           <div class="meta-grid">
             <div><strong>Logged At:</strong> ${new Date(crawl.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div><strong>GPS Coordinates:</strong> ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}</div>
+            ${isNest && !crawl.inSitu ? `
+              <div><strong>Original GPS Coordinates:</strong> ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}</div>
+              <div><strong>Relocated GPS Coordinates:</strong> ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}</div>
+            ` : `
+              <div><strong>GPS Coordinates:</strong> ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}</div>
+            `}
             <div><strong>Tideline Position:</strong> ${crawl.tidelineRelation || 'Not Specified'}</div>
             ${isNest ? `
               <div><strong>In Situ:</strong> ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}</div>
-              ${!crawl.inSitu && crawl.relocationCoords ? `
-                <div><strong>Relocation Coordinates:</strong> ${crawl.relocationCoords.lat.toFixed(6)}, ${crawl.relocationCoords.lng.toFixed(6)}</div>
+              ${!crawl.inSitu ? `
                 ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? `
                   <div><strong>Total Eggs Found:</strong> ${crawl.totalEggCount}</div>
                   <div><strong>Relocated Eggs:</strong> ${crawl.relocatedEggCount}</div>
@@ -212,8 +222,7 @@ export function exportToHTML(session) {
               ` : ''}
             ` : `
               <div><strong>Factors:</strong> ${crawl.falseCrawlFactors || 'None logged'}</div>
-              <div><strong>Crossed Out:</strong> ${crawl.crossedOut ? 'Yes' : 'No'}</div>
-              <div><strong>Is Possible Nest?:</strong> ${crawl.isPossibleNest ? 'Yes' : 'No'}</div>
+              ${crawl.isPossibleNest ? `<div><strong>Possible Nest:</strong> Yes</div>` : ''}
             `}
           </div>
 
