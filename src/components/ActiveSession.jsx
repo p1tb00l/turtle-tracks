@@ -320,11 +320,13 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
         setActiveSession(prev => {
           if (!prev) return null;
           if (prev.weather === weather && prev.tides === tides) return prev;
-          return {
+          const updated = {
             ...prev,
             weather: weather || prev.weather || 'Unavailable',
             tides: tides || prev.tides || 'Unavailable'
           };
+          localStorage.setItem('turtletracks_active_session', JSON.stringify(updated));
+          return updated;
         });
       };
       loadWeatherAndTides();
@@ -350,7 +352,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 
   // Sync GPS updates to the activeSession parent state (so it persists reload)
   useEffect(() => {
-    if (activeSession) {
+    if (activeSession && !showWizard) {
       const updated = {
         ...activeSession,
         path,
@@ -361,10 +363,20 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       if (JSON.stringify(updated.path) !== JSON.stringify(activeSession.path) || 
           updated.distance !== activeSession.distance ||
           updated.locationName !== activeSession.locationName) {
-        setActiveSession(updated);
+        setActiveSession(prev => {
+          if (!prev) return null;
+          const updatedState = {
+            ...prev,
+            path,
+            distance,
+            locationName: locName !== 'Acquiring Location...' ? locName : prev.locationName
+          };
+          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedState));
+          return updatedState;
+        });
       }
     }
-  }, [path, distance, locName]);
+  }, [path, distance, locName, showWizard]);
 
   // Handle Crawl Documentation
   const handleSaveCrawl = (crawlData) => {

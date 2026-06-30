@@ -878,11 +878,10 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                 </label>
 
                 {isPossibleNest && (
-                  <div style={{ paddingLeft: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label className="form-checkbox">
-                      <input type="checkbox" checked={markedPost} onChange={(e) => setMarkedPost(e.target.checked)} />
-                      <span style={{ fontSize: '0.8rem', color: '#8892b0' }}>Marked possible nest site with PN pole</span>
-                    </label>
+                  <div style={{ paddingLeft: '28px', color: '#8892b0', fontSize: '0.8rem' }}>
+                    <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                      <li>Mark possible nest site with PN pole</li>
+                    </ul>
                   </div>
                 )}
               </div>
