@@ -50,82 +50,12 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target.result;
-      
-      // If we have a nest number and this is a card/protected photo, we watermark it
-      const shouldWatermark = nestNumber && (tag.includes('Nest Card') || tag.includes('Protected Nest'));
-      if (shouldWatermark) {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth || img.width;
-            canvas.height = img.naturalHeight || img.height;
-            const ctx = canvas.getContext('2d');
-            
-            // Draw original image
-            ctx.drawImage(img, 0, 0);
-            
-            // Add watermark configuration
-            const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
-            const watermarkText = `Nest #${nestNumber} - ${todayStr}`;
-            // Set font size proportional to image width
-            const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            
-            // Measure text width to position in bottom right corner
-            const textMetrics = ctx.measureText(watermarkText);
-            const padding = 15;
-            const x = canvas.width - textMetrics.width - padding;
-            const y = canvas.height - padding;
-            
-            // Draw semi-transparent background card for readability
-            ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
-            ctx.fillRect(
-              x - 6,
-              y - fontSize + 2,
-              textMetrics.width + 12,
-              fontSize + 6
-            );
-            
-            // Draw text
-            ctx.fillStyle = '#64ffda'; // Primary Seafoam accent color
-            ctx.fillText(watermarkText, x, y);
-            
-            const watermarkedDataUrl = canvas.toDataURL('image/png');
-            setPhotos(prev => [...prev, {
-              id: Date.now().toString(),
-              dataUrl: watermarkedDataUrl,
-              tag: tag,
-              watermarked: true
-            }]);
-          } catch (err) {
-            console.error("Canvas watermark failed, using fallback:", err);
-            setPhotos(prev => [...prev, {
-              id: Date.now().toString(),
-              dataUrl: dataUrl,
-              tag: tag,
-              watermarked: false
-            }]);
-          }
-        };
-        img.onerror = () => {
-          console.error("Image loading failed, using fallback:");
-          setPhotos(prev => [...prev, {
-            id: Date.now().toString(),
-            dataUrl: dataUrl,
-            tag: tag,
-            watermarked: false
-          }]);
-        };
-        img.src = dataUrl;
-      } else {
-        setPhotos(prev => [...prev, {
-          id: Date.now().toString(),
-          dataUrl: dataUrl,
-          tag: tag,
-          watermarked: false
-        }]);
-      }
+      setPhotos(prev => [...prev, {
+        id: Date.now().toString(),
+        dataUrl: dataUrl,
+        tag: tag,
+        watermarked: false
+      }]);
     };
     reader.readAsDataURL(file);
   };
