@@ -365,14 +365,26 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 
   // Handle Crawl Documentation
   const handleSaveCrawl = (crawlData) => {
-    const updatedCrawls = [...(activeSession.crawls || []), crawlData];
+    const currentSessionStr = localStorage.getItem('turtletracks_active_session');
+    let baseSession = activeSession;
+    if (currentSessionStr) {
+      try {
+        baseSession = JSON.parse(currentSessionStr);
+      } catch (e) {
+        console.error("Failed to parse localStorage active session:", e);
+      }
+    }
+    const updatedCrawls = [...(baseSession.crawls || []), crawlData];
     const updatedSession = {
-      ...activeSession,
-      crawls: updatedCrawls
+      ...baseSession,
+      crawls: updatedCrawls,
+      path,
+      distance,
+      locationName: locName !== 'Acquiring Location...' ? locName : baseSession.locationName
     };
-    setActiveSession(updatedSession);
-    // Explicitly write to localStorage to guarantee persistence against immediate app backgrounding
+    
     localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+    setActiveSession(updatedSession);
     setShowWizard(false);
   };
 
