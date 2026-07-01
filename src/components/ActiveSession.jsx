@@ -353,28 +353,13 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   // Sync GPS updates to the activeSession parent state (so it persists reload)
   useEffect(() => {
     if (activeSession && !showWizard) {
-      const updated = {
+      const updatedState = {
         ...activeSession,
         path,
         distance,
         locationName: locName !== 'Acquiring Location...' ? locName : activeSession.locationName
       };
-      // Only set if changed to avoid renders
-      if (JSON.stringify(updated.path) !== JSON.stringify(activeSession.path) || 
-          updated.distance !== activeSession.distance ||
-          updated.locationName !== activeSession.locationName) {
-        setActiveSession(prev => {
-          if (!prev) return null;
-          const updatedState = {
-            ...prev,
-            path,
-            distance,
-            locationName: locName !== 'Acquiring Location...' ? locName : prev.locationName
-          };
-          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedState));
-          return updatedState;
-        });
-      }
+      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedState));
     }
   }, [path, distance, locName, showWizard]);
 
