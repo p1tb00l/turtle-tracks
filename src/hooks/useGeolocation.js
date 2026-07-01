@@ -67,9 +67,24 @@ export function useGeolocation(isTracking = false, options = {}) {
       return;
     }
 
+    const lastTimestampRef = { current: Date.now() };
+
     const handleSuccess = (position) => {
       const { latitude, longitude, accuracy } = position.coords;
       const newLoc = { lat: latitude, lng: longitude };
+      const now = Date.now();
+
+      // 1. FILTER: Coordinate must be physically located on Daufuskie Island bounds
+      const minLat = 32.0800;
+      const maxLat = 32.1700;
+      const minLng = -80.9200;
+      const maxLng = -80.8000;
+
+      const isOnIsland = latitude >= minLat && latitude <= maxLat && longitude >= minLng && longitude <= maxLng;
+      if (!isOnIsland) {
+        console.warn("Discarded errant GPS point outside Daufuskie Island boundary:", newLoc);
+        return;
+      }
 
       setLocation(newLoc);
       setAccuracy(accuracy);
@@ -79,16 +94,30 @@ export function useGeolocation(isTracking = false, options = {}) {
       setPath((prevPath) => {
         if (prevPath.length === 0) {
           lastLocationRef.current = newLoc;
+          lastTimestampRef.current = now;
           return [newLoc];
         }
         
-        // Only append and calculate distance if moved significantly (e.g. > 2 meters)
         const lastLoc = prevPath[prevPath.length - 1];
         const distMoved = calculateDistance(lastLoc, newLoc);
-        
+        const timeElapsedSec = (now - lastTimestampRef.current) / 1000;
+
+        // 2. FILTER: Exclude points indicating travel speeds over 25mph (~11.176 meters/second)
+        // Only evaluate if enough time has passed (e.g., > 1s) to avoid division by near-zero time steps
+        if (timeElapsedSec > 1) {
+          const speedMPS = distMoved / timeElapsedSec;
+          const maxSpeedMPS = 11.176; // 25 mph converted to meters per second
+          if (speedMPS > maxSpeedMPS) {
+            console.warn(`Discarded errant GPS jump of ${distMoved.toFixed(2)}m (calculated speed: ${(speedMPS * 2.23694).toFixed(1)} mph)`);
+            return prevPath;
+          }
+        }
+
+        // Only append and calculate distance if moved significantly (e.g. > 2 meters)
         if (distMoved > 2) {
           setDistance((prevDist) => prevDist + distMoved);
           lastLocationRef.current = newLoc;
+          lastTimestampRef.current = now;
           return [...prevPath, newLoc];
         }
         return prevPath;
