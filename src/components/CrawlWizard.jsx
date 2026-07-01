@@ -42,20 +42,64 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     }
   }, [activeCoords, coordinates]);
 
-  // Capture photos helper
+  // Capture photos helper with built-in compression to prevent QuotaExceededError
   const handlePhotoUpload = (e, tag) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const dataUrl = event.target.result;
-      setPhotos(prev => [...prev, {
-        id: Date.now().toString(),
-        dataUrl: dataUrl,
-        tag: tag,
-        watermarked: false
-      }]);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800; // Resize to a maximum of 800px to drastically reduce base64 size
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG with 0.7 quality to target 30-50KB size
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          
+          setPhotos(prev => [...prev, {
+            id: Date.now().toString(),
+            dataUrl: compressedDataUrl,
+            tag: tag,
+            watermarked: false
+          }]);
+        } catch (err) {
+          console.error("Image compression failed, using fallback:", err);
+          setPhotos(prev => [...prev, {
+            id: Date.now().toString(),
+            dataUrl: event.target.result,
+            tag: tag,
+            watermarked: false
+          }]);
+        }
+      };
+      img.onerror = () => {
+        setPhotos(prev => [...prev, {
+          id: Date.now().toString(),
+          dataUrl: event.target.result,
+          tag: tag,
+          watermarked: false
+        }]);
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
