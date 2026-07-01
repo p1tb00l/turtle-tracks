@@ -51,8 +51,9 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     reader.onload = (event) => {
       const dataUrl = event.target.result;
       
-      // If we have a nest number, we watermark the photo
-      if (nestNumber) {
+      // If we have a nest number and this is a card/protected photo, we watermark it
+      const shouldWatermark = nestNumber && (tag.includes('Nest Card') || tag.includes('Protected Nest'));
+      if (shouldWatermark) {
         const img = new Image();
         img.onload = () => {
           try {
