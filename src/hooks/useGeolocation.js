@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 // Haversine formula to calculate distance between two coordinates in meters
 export function calculateDistance(coords1, coords2) {
@@ -384,7 +384,7 @@ export function useGeolocation(isTracking = false, options = {}) {
     };
   }, [isTracking, isSimulated]);
 
-  const beachCoverage = React.useMemo(() => {
+  const beachCoverage = useMemo(() => {
     return calculateBeachCoverage(path, SOUTH_BEACH_CENTERLINE, MELROSE_CENTERLINE, SOUTH_BEACH_POLYGON, MELROSE_POLYGON);
   }, [path]);
 
