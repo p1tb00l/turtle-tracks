@@ -120,49 +120,53 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
     // Ensure coordinates is defined
     const finalCoords = coordinates || activeCoords || { lat: 32.1220, lng: -80.8650 };
     
-    if (crawlType === 'nest') {
-      const equipmentInstalled = true;
-      onSaveCrawl({
-        type: 'nest',
-        timestamp: new Date().toISOString(),
-        coordinates: finalCoords,
-        photos,
-        tidelineRelation,
-        inSitu,
-        dnaVialNumber,
-        equipmentInstalled,
-        relocationCoords: !inSitu ? relocationCoords : null,
-        totalEggCount: !inSitu ? totalEggCount : null,
-        relocatedEggCount: !inSitu ? relocatedEggCount : null,
-        nestCardDone,
-        notes,
-        isTurtleEncounter,
-        tagsFound: isTurtleEncounter ? tagsFound : false,
-        flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
-        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
-      });
-    } else {
-      onSaveCrawl({
-        type: 'false_crawl',
-        timestamp: new Date().toISOString(),
-        coordinates: finalCoords,
-        photos,
-        tidelineRelation,
-        falseCrawlFactors,
-        crossedOut,
-        isPossibleNest,
-        markedPost: isPossibleNest ? markedPost : false,
-        nestCardDone,
-        notes,
-        isTurtleEncounter,
-        tagsFound: isTurtleEncounter ? tagsFound : false,
-        flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
-        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
-      });
+    try {
+      if (crawlType === 'nest') {
+        const equipmentInstalled = true;
+        onSaveCrawl({
+          type: 'nest',
+          timestamp: new Date().toISOString(),
+          coordinates: finalCoords,
+          photos,
+          tidelineRelation,
+          inSitu,
+          dnaVialNumber,
+          equipmentInstalled,
+          relocationCoords: !inSitu ? relocationCoords : null,
+          totalEggCount: !inSitu ? totalEggCount : null,
+          relocatedEggCount: !inSitu ? relocatedEggCount : null,
+          nestCardDone,
+          notes,
+          isTurtleEncounter,
+          tagsFound: isTurtleEncounter ? tagsFound : false,
+          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
+          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+        });
+      } else {
+        onSaveCrawl({
+          type: 'false_crawl',
+          timestamp: new Date().toISOString(),
+          coordinates: finalCoords,
+          photos,
+          tidelineRelation,
+          falseCrawlFactors,
+          crossedOut,
+          isPossibleNest,
+          markedPost: isPossibleNest ? markedPost : false,
+          nestCardDone,
+          notes,
+          isTurtleEncounter,
+          tagsFound: isTurtleEncounter ? tagsFound : false,
+          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
+          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+        });
+      }
+    } catch (error) {
+      console.error("Failed to execute onSaveCrawl callback:", error);
     }
   };
 
