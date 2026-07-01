@@ -525,6 +525,37 @@ export default function GPXDatabase({ userLocation }) {
           {/* Details card below the map */}
           {(() => {
             const config = SUBTYPES_CONFIG[selectedWaypoint.subtype] || SUBTYPES_CONFIG.in_situ;
+            
+            // Calculate age for info card details
+            const isNest = selectedWaypoint.subtype === 'in_situ' || selectedWaypoint.subtype === 'relocated_final' || selectedWaypoint.subtype === 'relocated_original';
+            let ageDays = null;
+            let ageColor = null;
+            
+            if (isNest) {
+              const dateMatch = selectedWaypoint.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+              let nestDate = null;
+              if (dateMatch) {
+                nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+              } else if (selectedWaypoint.timestamp) {
+                nestDate = new Date(selectedWaypoint.timestamp);
+              }
+              
+              if (nestDate && !isNaN(nestDate.getTime())) {
+                const diffTime = Math.abs(new Date() - nestDate);
+                ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (ageDays > 65) {
+                  ageColor = '#ff7a59'; // Red/Coral
+                } else if (ageDays > 55) {
+                  ageColor = '#f4a261'; // Orange
+                } else if (ageDays > 45) {
+                  ageColor = '#fde047'; // Yellow
+                }
+              }
+            }
+
+            const headerBorderColor = ageColor || config.color;
+
             return (
               <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
@@ -537,14 +568,14 @@ export default function GPXDatabase({ userLocation }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '18px',
-                    border: `1.5px solid ${config.color}`,
+                    border: `1.5px solid ${headerBorderColor}`,
                     flexShrink: 0
                   }}>
                     {config.symbol}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ fontSize: '1rem', color: '#e6f1ff', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                      {selectedWaypoint.name}
+                    <strong style={{ fontSize: '1rem', color: ageColor || '#e6f1ff', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                      {selectedWaypoint.name}{ageDays !== null ? ` (${ageDays}d)` : ''}
                     </strong>
                     <span style={{ fontSize: '0.75rem', color: config.color, fontWeight: '600', textTransform: 'uppercase' }}>
                       {config.label}
@@ -569,9 +600,14 @@ export default function GPXDatabase({ userLocation }) {
                   <div>
                     <strong>Longitude:</strong> <span style={{ fontFamily: 'monospace', color: '#e6f1ff' }}>{selectedWaypoint.lng.toFixed(6)}°</span>
                   </div>
-                  <div style={{ gridColumn: 'span 2', marginTop: '4px' }}>
+                  <div>
                     <strong>Recorded At:</strong> <span style={{ color: '#e6f1ff' }}>{new Date(selectedWaypoint.timestamp).toLocaleString()}</span>
                   </div>
+                  {ageDays !== null && (
+                    <div>
+                      <strong>Nest Age:</strong> <span style={{ color: ageColor || '#64ffda', fontWeight: 'bold' }}>{ageDays} days</span>
+                    </div>
+                  )}
                 </div>
 
                 {selectedWaypoint.desc && (
