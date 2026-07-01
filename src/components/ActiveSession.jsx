@@ -218,6 +218,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     location, 
     path, 
     distance, 
+    beachCoverage,
     isSimulated, 
     startSimulator, 
     stopSimulator,
@@ -357,11 +358,12 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
         ...activeSession,
         path,
         distance,
+        beachCoverage,
         locationName: locName !== 'Acquiring Location...' ? locName : activeSession.locationName
       };
       localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedState));
     }
-  }, [path, distance, locName, showWizard]);
+  }, [path, distance, beachCoverage, locName, showWizard]);
 
   // Handle Crawl Documentation
   const handleSaveCrawl = (crawlData) => {
@@ -380,6 +382,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       crawls: updatedCrawls,
       path,
       distance,
+      beachCoverage,
       locationName: locName !== 'Acquiring Location...' ? locName : baseSession.locationName
     };
     
@@ -396,6 +399,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       endTime: new Date().toISOString(),
       duration: seconds,
       distance: distance,
+      beachCoverage: beachCoverage,
       path: path,
       locationName: locName === 'Acquiring Location...' ? 'Daufuskie Island Beach' : locName
     };
@@ -502,19 +506,26 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '100%' }}>
           
           {/* Dash Header */}
-          <div className="glass-panel" style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Clock className="text-[#64ffda]" size={20} />
+          <div className="glass-panel" style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock className="text-[#64ffda]" size={18} />
               <div>
-                <span style={{ fontSize: '0.65rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Active Time</span>
-                <strong style={{ fontSize: '1.2rem', color: '#e6f1ff', fontFamily: 'monospace' }}>{formatTime(seconds)}</strong>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Active Time</span>
+                <strong style={{ fontSize: '1.05rem', color: '#e6f1ff', fontFamily: 'monospace' }}>{formatTime(seconds)}</strong>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderLeft: '1px solid rgba(48, 60, 85, 0.4)', paddingLeft: '15px' }}>
-              <Navigation className="text-[#f4a261]" size={20} style={{ transform: 'rotate(45deg)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid rgba(48, 60, 85, 0.4)', paddingLeft: '10px' }}>
+              <Navigation className="text-[#f4a261]" size={18} style={{ transform: 'rotate(45deg)' }} />
               <div>
-                <span style={{ fontSize: '0.65rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Patrol Dist</span>
-                <strong style={{ fontSize: '1.2rem', color: '#e6f1ff', fontFamily: 'monospace' }}>{metersToMiles(distance)} mi</strong>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Patrol Dist</span>
+                <strong style={{ fontSize: '1.05rem', color: '#e6f1ff', fontFamily: 'monospace' }}>{metersToMiles(distance)} mi</strong>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid rgba(48, 60, 85, 0.4)', paddingLeft: '10px' }}>
+              <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>🏖️</span>
+              <div>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Beach Cover</span>
+                <strong style={{ fontSize: '1.05rem', color: '#64ffda', fontFamily: 'monospace' }}>{metersToMiles(beachCoverage || 0)} mi</strong>
               </div>
             </div>
           </div>

@@ -298,18 +298,22 @@ export default function SessionLibrary({ sessions, setSessions }) {
               Date: {new Date(selectedSession.startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', textAlign: 'center' }}>
-              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '10px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.65rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Time</span>
-                <strong style={{ fontSize: '0.95rem', color: '#e6f1ff' }}>{formatDuration(selectedSession.duration || 0)}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1.1fr 0.8fr', gap: '8px', textAlign: 'center' }}>
+              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Time</span>
+                <strong style={{ fontSize: '0.85rem', color: '#e6f1ff' }}>{formatDuration(selectedSession.duration || 0)}</strong>
               </div>
-              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '10px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.65rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Distance</span>
-                <strong style={{ fontSize: '0.95rem', color: '#e6f1ff' }}>{metersToMiles(selectedSession.distance || 0)} mi</strong>
+              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Patrol Dist</span>
+                <strong style={{ fontSize: '0.85rem', color: '#e6f1ff' }}>{metersToMiles(selectedSession.distance || 0)} mi</strong>
               </div>
-              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '10px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.65rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Crawls</span>
-                <strong style={{ fontSize: '0.95rem', color: '#64ffda' }}>{selectedSession.crawls?.length || 0}</strong>
+              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Beach Cover</span>
+                <strong style={{ fontSize: '0.85rem', color: '#64ffda' }}>{metersToMiles(selectedSession.beachCoverage || 0)} mi</strong>
+              </div>
+              <div style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.6rem', color: '#8892b0', display: 'block', textTransform: 'uppercase' }}>Crawls</span>
+                <strong style={{ fontSize: '0.85rem', color: '#64ffda' }}>{selectedSession.crawls?.length || 0}</strong>
               </div>
             </div>
 
