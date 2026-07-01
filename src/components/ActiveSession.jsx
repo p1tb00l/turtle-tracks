@@ -279,11 +279,11 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     }
   }, [location, !!activeSession]);
 
-  // Sync state values with activeSession details
+  // Sync state values with activeSession details on initial mount/restore only
   useEffect(() => {
     if (activeSession) {
       // Set path and distance in hook if restoring mid-session
-      if (activeSession.path?.length > 0) {
+      if (activeSession.path?.length > 0 && path.length === 0) {
         setPath(activeSession.path);
         setDistance(activeSession.distance || 0);
       }
@@ -295,7 +295,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       setSeconds(0);
       setLocName('Acquiring Location...');
     }
-  }, [activeSession]);
+  }, [activeSession?.id]);
 
   // Active Session Timer Loop
   useEffect(() => {
