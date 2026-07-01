@@ -124,6 +124,7 @@ export default function NearbyRadar({ userLocation }) {
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const currentWaypointIdsRef = useRef('');
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'nests', 'crawls', 'possible'
   const [mapStyle, setMapStyle] = useState(() => {
     return localStorage.getItem('turtletracks_map_style') || 'satellite';
   });
@@ -157,10 +158,23 @@ export default function NearbyRadar({ userLocation }) {
       });
   }, []);
 
-  // Compute distances, sort, and slice to closest 6
+  // Filter and compute distances, sort, and slice to closest 10
   const processedWaypoints = React.useMemo(() => {
     if (!userLocation || waypoints.length === 0) return [];
-    return waypoints
+    
+    // Apply category filter matching the logic in GPXDatabase
+    const filtered = waypoints.filter(wp => {
+      if (activeFilter === 'nests') {
+        return wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+      } else if (activeFilter === 'crawls') {
+        return wp.subtype === 'false_crawl';
+      } else if (activeFilter === 'possible') {
+        return wp.subtype === 'possible_nest';
+      }
+      return true;
+    });
+
+    return filtered
       .map(wp => {
         const distanceMeters = calculateDistance(userLocation, { lat: wp.lat, lng: wp.lng });
         return {
@@ -171,7 +185,7 @@ export default function NearbyRadar({ userLocation }) {
       })
       .sort((a, b) => a.distanceMeters - b.distanceMeters)
       .slice(0, 10);
-  }, [waypoints, userLocation]);
+  }, [waypoints, userLocation, activeFilter]);
 
   // Leaflet map setup (only center when initial mount/switch occurs)
   useEffect(() => {
@@ -372,6 +386,43 @@ export default function NearbyRadar({ userLocation }) {
         </button>
       </div>
 
+      {/* Filter Chips */}
+      {!loading && !fetchError && userLocation && (
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {[
+            { id: 'all', label: 'All' },
+            { id: 'nests', label: 'Confirmed Nests' },
+            { id: 'crawls', label: 'False Crawls' },
+            { id: 'possible', label: 'Possible Nests' }
+          ].map(chip => {
+            const isActive = activeFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                onClick={() => {
+                  setActiveFilter(chip.id);
+                  setHasFitBounds(false); // Reset bounds fit so it refits for filtered items
+                }}
+                style={{
+                  flexShrink: 0,
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  border: `1px solid ${isActive ? '#64ffda' : 'rgba(48, 60, 85, 0.6)'}`,
+                  backgroundColor: isActive ? 'rgba(100, 255, 218, 0.1)' : 'rgba(2, 12, 27, 0.4)',
+                  color: isActive ? '#64ffda' : '#8892b0',
+                  cursor: 'pointer',
+                  fontSize: '0.72rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {loading && (
         <div style={{ textAlign: 'center', padding: '30px', color: '#8892b0', fontStyle: 'italic', fontSize: '0.85rem' }}>
           Loading nests database...
@@ -407,7 +458,7 @@ export default function NearbyRadar({ userLocation }) {
           {viewMode === 'list' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ fontSize: '0.78rem', color: '#8892b0', marginBottom: '2px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>6 Closest Nests & Crawls</span>
+                <span>10 Closest Nests & Crawls</span>
                 <span>Active Location: {userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</span>
               </div>
               
