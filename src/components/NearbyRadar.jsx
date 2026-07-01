@@ -170,7 +170,7 @@ export default function NearbyRadar({ userLocation }) {
         };
       })
       .sort((a, b) => a.distanceMeters - b.distanceMeters)
-      .slice(0, 6);
+      .slice(0, 10);
   }, [waypoints, userLocation]);
 
   // Leaflet map setup (only center when initial mount/switch occurs)
@@ -244,7 +244,7 @@ export default function NearbyRadar({ userLocation }) {
     const map = mapRef.current;
     if (!map || viewMode !== 'map') return;
 
-    // Check if the 6 closest waypoints have changed
+    // Check if the 10 closest waypoints have changed
     const waypointIdsString = processedWaypoints.map(wp => wp.id).join(',');
     const waypointsChanged = currentWaypointIdsRef.current !== waypointIdsString;
 
