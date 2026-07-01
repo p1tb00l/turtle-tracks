@@ -117,12 +117,15 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   };
 
   const handleSave = () => {
+    // Ensure coordinates is defined
+    const finalCoords = coordinates || activeCoords || { lat: 32.1220, lng: -80.8650 };
+    
     if (crawlType === 'nest') {
       const equipmentInstalled = true;
       onSaveCrawl({
         type: 'nest',
         timestamp: new Date().toISOString(),
-        coordinates,
+        coordinates: finalCoords,
         photos,
         tidelineRelation,
         inSitu,
@@ -144,7 +147,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
       onSaveCrawl({
         type: 'false_crawl',
         timestamp: new Date().toISOString(),
-        coordinates,
+        coordinates: finalCoords,
         photos,
         tidelineRelation,
         falseCrawlFactors,
