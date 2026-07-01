@@ -308,7 +308,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [activeSession]);
+  }, [!!activeSession]);
 
   // Fetch weather and tide data for the active session if not already populated
   useEffect(() => {
