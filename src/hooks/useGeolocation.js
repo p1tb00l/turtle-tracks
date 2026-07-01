@@ -68,6 +68,7 @@ export function useGeolocation(isTracking = false, options = {}) {
     }
 
     const lastTimestampRef = { current: Date.now() };
+    let tentativePoints = [];
 
     const handleSuccess = (position) => {
       const { latitude, longitude, accuracy } = position.coords;
@@ -95,32 +96,92 @@ export function useGeolocation(isTracking = false, options = {}) {
         if (prevPath.length === 0) {
           lastLocationRef.current = newLoc;
           lastTimestampRef.current = now;
+          tentativePoints = [];
           return [newLoc];
         }
         
         const lastLoc = prevPath[prevPath.length - 1];
         const distMoved = calculateDistance(lastLoc, newLoc);
         const timeElapsedSec = (now - lastTimestampRef.current) / 1000;
+        const maxSpeedMPS = 11.176; // 25 mph converted to meters per second
 
-        // 2. FILTER: Exclude points indicating travel speeds over 25mph (~11.176 meters/second)
-        // Only evaluate if enough time has passed (e.g., > 1s) to avoid division by near-zero time steps
+        // 2. SPEED FILTER: Check speed relative to the last confirmed point
+        let isSpeedInvalid = false;
         if (timeElapsedSec > 1) {
           const speedMPS = distMoved / timeElapsedSec;
-          const maxSpeedMPS = 11.176; // 25 mph converted to meters per second
           if (speedMPS > maxSpeedMPS) {
-            console.warn(`Discarded errant GPS jump of ${distMoved.toFixed(2)}m (calculated speed: ${(speedMPS * 2.23694).toFixed(1)} mph)`);
-            return prevPath;
+            isSpeedInvalid = true;
           }
         }
 
-        // Only append and calculate distance if moved significantly (e.g. > 2 meters)
-        if (distMoved > 2) {
-          setDistance((prevDist) => prevDist + distMoved);
-          lastLocationRef.current = newLoc;
-          lastTimestampRef.current = now;
-          return [...prevPath, newLoc];
+        if (isSpeedInvalid) {
+          // Check if this point matches the tentative sequence we're building
+          if (tentativePoints.length === 0) {
+            console.warn(`Tentative errant point detected (speed: ${((distMoved / timeElapsedSec) * 2.23694).toFixed(1)} mph). Buffering...`);
+            tentativePoints.push({ loc: newLoc, timestamp: now });
+            return prevPath;
+          } else {
+            // Check speed relative to the PREVIOUS tentative point instead of the stale lastLoc
+            const prevTentative = tentativePoints[tentativePoints.length - 1];
+            const distFromTentative = calculateDistance(prevTentative.loc, newLoc);
+            const timeFromTentativeSec = (now - prevTentative.timestamp) / 1000;
+            
+            let isTentativeSpeedValid = true;
+            if (timeFromTentativeSec > 0.5) {
+              const speedTentativeMPS = distFromTentative / timeFromTentativeSec;
+              if (speedTentativeMPS > maxSpeedMPS) {
+                isTentativeSpeedValid = false;
+              }
+            }
+
+            if (isTentativeSpeedValid) {
+              tentativePoints.push({ loc: newLoc, timestamp: now });
+              console.log(`Buffered tentative point #${tentativePoints.length}`);
+
+              // If we have accumulated 3 consecutive realistic tentative points, the user's new position is real!
+              // Commit the entire sequence to the path.
+              if (tentativePoints.length >= 3) {
+                console.log("Committing 3 consecutive valid tentative points after GPS outage/jump.");
+                
+                // Add the direct gap distance between the last confirmed point and the first tentative point
+                const gapDistance = calculateDistance(lastLoc, tentativePoints[0].loc);
+                
+                // Accumulate distance for the entire tentative chain
+                let additionalDistance = gapDistance;
+                for (let i = 1; i < tentativePoints.length; i++) {
+                  additionalDistance += calculateDistance(tentativePoints[i - 1].loc, tentativePoints[i].loc);
+                }
+
+                setDistance((prevDist) => prevDist + additionalDistance);
+                lastLocationRef.current = newLoc;
+                lastTimestampRef.current = now;
+
+                const committedLocs = tentativePoints.map(p => p.loc);
+                tentativePoints = [];
+                return [...prevPath, ...committedLocs];
+              }
+              return prevPath;
+            } else {
+              // The new point is also moving errantly (not matching a stable path). 
+              // Discard the whole tentative chain and start fresh with this new point.
+              console.warn("Tentative buffer disrupted by irregular velocity. Resetting tentative queue.");
+              tentativePoints = [{ loc: newLoc, timestamp: now }];
+              return prevPath;
+            }
+          }
+        } else {
+          // Point is valid relative to lastLoc. Clear tentative buffer since we are back on track.
+          tentativePoints = [];
+
+          // Only append and calculate distance if moved significantly (e.g. > 2 meters)
+          if (distMoved > 2) {
+            setDistance((prevDist) => prevDist + distMoved);
+            lastLocationRef.current = newLoc;
+            lastTimestampRef.current = now;
+            return [...prevPath, newLoc];
+          }
+          return prevPath;
         }
-        return prevPath;
       });
     };
 
