@@ -117,113 +117,49 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   };
 
   const handleSave = () => {
-    // Helper to proceed with actual saving
-    const saveWithPhotos = (processedPhotos) => {
-      if (crawlType === 'nest') {
-        const equipmentInstalled = true;
-        onSaveCrawl({
-          type: 'nest',
-          timestamp: new Date().toISOString(),
-          coordinates,
-          photos: processedPhotos,
-          tidelineRelation,
-          inSitu,
-          dnaVialNumber,
-          equipmentInstalled,
-          relocationCoords: !inSitu ? relocationCoords : null,
-          totalEggCount: !inSitu ? totalEggCount : null,
-          relocatedEggCount: !inSitu ? relocatedEggCount : null,
-          nestCardDone,
-          notes,
-          isTurtleEncounter,
-          tagsFound: isTurtleEncounter ? tagsFound : false,
-          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
-          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
-        });
-      } else {
-        onSaveCrawl({
-          type: 'false_crawl',
-          timestamp: new Date().toISOString(),
-          coordinates,
-          photos: processedPhotos,
-          tidelineRelation,
-          falseCrawlFactors,
-          crossedOut,
-          isPossibleNest,
-          markedPost: isPossibleNest ? markedPost : false,
-          nestCardDone,
-          notes,
-          isTurtleEncounter,
-          tagsFound: isTurtleEncounter ? tagsFound : false,
-          flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
-          carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
-          carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
-          carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
-        });
-      }
-    };
-
-    // If we have a nest number and unwatermarked photos, apply watermarks retroactively now
-    const unwatermarkedPhotos = photos.filter(p => !p.watermarked);
-    if (nestNumber && unwatermarkedPhotos.length > 0) {
-      const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
-      const watermarkText = `Nest #${nestNumber} - ${todayStr}`;
-      
-      Promise.all(photos.map(p => {
-        if (p.watermarked) return Promise.resolve(p);
-        return new Promise((resolve) => {
-          try {
-            const img = new Image();
-            img.onload = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.naturalWidth || img.width;
-                canvas.height = img.naturalHeight || img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                
-                const fontSize = Math.max(14, Math.round(canvas.width * 0.035));
-                ctx.font = `bold ${fontSize}px sans-serif`;
-                const textMetrics = ctx.measureText(watermarkText);
-                const padding = 15;
-                const x = canvas.width - textMetrics.width - padding;
-                const y = canvas.height - padding;
-                
-                ctx.fillStyle = 'rgba(2, 12, 27, 0.6)';
-                ctx.fillRect(x - 6, y - fontSize + 2, textMetrics.width + 12, fontSize + 6);
-                ctx.fillStyle = '#64ffda';
-                ctx.fillText(watermarkText, x, y);
-                
-                resolve({
-                  ...p,
-                  dataUrl: canvas.toDataURL('image/png'),
-                  watermarked: true
-                });
-              } catch (err) {
-                console.error("Watermark canvas drawing failed, using fallback:", err);
-                resolve(p);
-              }
-            };
-            img.onerror = (e) => {
-              console.error("Watermark image load failed:", e);
-              resolve(p);
-            };
-            img.src = p.dataUrl;
-          } catch (err) {
-            console.error("Watermark setup failed:", err);
-            resolve(p);
-          }
-        });
-      })).then(updatedPhotos => {
-        saveWithPhotos(updatedPhotos);
-      }).catch(err => {
-        console.error("Promise.all for watermarks failed, saving original photos:", err);
-        saveWithPhotos(photos);
+    if (crawlType === 'nest') {
+      const equipmentInstalled = true;
+      onSaveCrawl({
+        type: 'nest',
+        timestamp: new Date().toISOString(),
+        coordinates,
+        photos,
+        tidelineRelation,
+        inSitu,
+        dnaVialNumber,
+        equipmentInstalled,
+        relocationCoords: !inSitu ? relocationCoords : null,
+        totalEggCount: !inSitu ? totalEggCount : null,
+        relocatedEggCount: !inSitu ? relocatedEggCount : null,
+        nestCardDone,
+        notes,
+        isTurtleEncounter,
+        tagsFound: isTurtleEncounter ? tagsFound : false,
+        flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
+        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
       });
     } else {
-      saveWithPhotos(photos);
+      onSaveCrawl({
+        type: 'false_crawl',
+        timestamp: new Date().toISOString(),
+        coordinates,
+        photos,
+        tidelineRelation,
+        falseCrawlFactors,
+        crossedOut,
+        isPossibleNest,
+        markedPost: isPossibleNest ? markedPost : false,
+        nestCardDone,
+        notes,
+        isTurtleEncounter,
+        tagsFound: isTurtleEncounter ? tagsFound : false,
+        flipperPitTag: isTurtleEncounter && tagsFound ? flipperPitTag : '',
+        carapaceNotchToNotch: isTurtleEncounter ? carapaceNotchToNotch : '',
+        carapaceNotchToTip: isTurtleEncounter ? carapaceNotchToTip : '',
+        carapaceWidestPoint: isTurtleEncounter ? carapaceWidestPoint : ''
+      });
     }
   };
 
