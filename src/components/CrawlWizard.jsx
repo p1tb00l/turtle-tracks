@@ -27,6 +27,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [notes, setNotes] = useState('');
   const [nestCardDone, setNestCardDone] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
+  const [nestLocationLandmark, setNestLocationLandmark] = useState('');
 
   // Turtle Encounter Form State
   const [tagsFound, setTagsFound] = useState(false);
@@ -121,6 +122,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           type: 'nest',
           timestamp: new Date().toISOString(),
           coordinates: finalCoords,
+          nestLocationLandmark,
           photos,
           tidelineRelation,
           inSitu,
@@ -143,6 +145,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           type: 'false_crawl',
           timestamp: new Date().toISOString(),
           coordinates: finalCoords,
+          nestLocationLandmark,
           photos,
           tidelineRelation,
           falseCrawlFactors,
@@ -584,6 +587,19 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                 <MapPin className="text-[#64ffda]" />
               </div>
 
+              {/* Nest Location Landmark Description Box */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Nest Location (Landmarks, Beach Markers)</label>
+                <input 
+                  type="text" 
+                  value={nestLocationLandmark}
+                  onChange={(e) => setNestLocationLandmark(e.target.value)}
+                  placeholder="e.g. 100 ft South of Marker 14, in front of Webb House"
+                  className="form-input"
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
               {/* Relative to Tideline */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Position Relative to Tideline</label>
@@ -769,6 +785,19 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                   </span>
                 </div>
                 <MapPin className="text-[#f4a261]" />
+              </div>
+
+              {/* Nest Location Landmark Description Box */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Nest Location (Landmarks, Beach Markers)</label>
+                <input 
+                  type="text" 
+                  value={nestLocationLandmark}
+                  onChange={(e) => setNestLocationLandmark(e.target.value)}
+                  placeholder="e.g. 100 ft South of Marker 14, in front of Webb House"
+                  className="form-input"
+                  style={{ fontSize: '0.85rem' }}
+                />
               </div>
 
               {/* Relative to Tideline */}

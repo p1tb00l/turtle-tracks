@@ -541,6 +541,9 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       ) : (
                         <div><strong>GPS:</strong> {crawl.coordinates?.lat.toFixed(6)}, {crawl.coordinates?.lng.toFixed(6)}</div>
                       )}
+                      {crawl.nestLocationLandmark && (
+                        <div><strong>Nest Location:</strong> {crawl.nestLocationLandmark}</div>
+                      )}
                       <div><strong>Position:</strong> {crawl.tidelineRelation}</div>
                       {isNest ? (
                         <>

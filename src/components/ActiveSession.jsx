@@ -599,6 +599,11 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                     <div key={idx} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${crawl.type === 'nest' ? '#64ffda' : '#f4a261'}` }}>
                       <div>
                         <strong style={{ fontSize: '0.9rem', color: '#e6f1ff' }}>Crawl #{idx + 1} - {crawl.type === 'nest' ? 'Confirmed Nest' : 'False Crawl'}</strong>
+                        {crawl.nestLocationLandmark && (
+                          <span style={{ fontSize: '0.72rem', color: '#64ffda', display: 'block', marginTop: '1px' }}>
+                            Loc: {crawl.nestLocationLandmark}
+                          </span>
+                        )}
                         <span style={{ fontSize: '0.75rem', color: '#8892b0', display: 'block', marginTop: '2px' }}>
                           Tideline: {crawl.tidelineRelation} &bull; {new Date(crawl.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
