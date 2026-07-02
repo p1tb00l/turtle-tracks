@@ -1,6 +1,5 @@
-/**
- * Utility functions for exporting beach monitoring session data.
- */
+import { getPointCommunity } from './communities';
+
 
 // Helper to convert meters to miles
 function metersToMiles(meters) {
@@ -497,4 +496,105 @@ export function generateMailtoLink(session) {
     `Hi team,\n\nHere is the beach monitoring report for Daufuskie Island:\n\n${summaryText}\n\nSent from TurtleTracks mobile app.`
   );
   return `mailto:?subject=${subject}&body=${body}`;
+}
+
+export function generateFBPost(session) {
+  const dateObj = new Date(session.startTime);
+  const dateStr = dateObj.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  });
+  const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const durationStr = formatDuration(session.duration || 0);
+  const distMiles = metersToMiles(session.distance || 0);
+  const coverageMiles = (session.beachCoverage ? session.beachCoverage * 0.000621371 : 0).toFixed(2);
+
+  const nests = session.crawls?.filter(c => c.type === 'nest') || [];
+  const falseCrawls = session.crawls?.filter(c => c.type === 'false_crawl') || [];
+  const possibleNestsCount = falseCrawls.filter(c => c.isPossibleNest).length;
+
+  let text = `**${dateStr} - ${dayOfWeek}**\n`;
+  text += `Nests: ${nests.length}\n`;
+  text += `False Crawls: ${falseCrawls.length - possibleNestsCount}\n`;
+  text += `Possible Nests: ${possibleNestsCount}\n`;
+  text += `Total Survey Time: ${durationStr}\n`;
+  text += `Total Survey Distance: ${distMiles} mi\n`;
+  text += `Beach Coverage: ${coverageMiles} mi\n`;
+  text += `Weather: ${session.weather || 'Not recorded'}\n`;
+  text += `Tides: ${session.tides || 'Not recorded'}\n`;
+
+  // Display only if there are nests
+  if (nests.length > 0) {
+    text += `\n`;
+    nests.forEach((crawl, idx) => {
+      text += `**Nest #${idx + 1}**\n`;
+      text += `- Original Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
+      if (crawl.nestLocationLandmark) {
+        text += `- Nest Location: ${crawl.nestLocationLandmark}\n`;
+      }
+      text += `- Position: ${crawl.tidelineRelation || 'Not recorded'}\n`;
+
+      const targetCoords = crawl.inSitu ? crawl.coordinates : crawl.relocationCoords;
+      const community = getPointCommunity(targetCoords);
+      if (community) {
+        text += `- Community: ${community}\n`;
+      }
+
+      if (crawl.inSitu) {
+        text += `- In Situ\n`;
+      } else {
+        text += `- Relocated Coordinates: ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}\n`;
+        text += `- Number of eggs: ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? crawl.totalEggCount : (crawl.eggCount || '0')}\n`;
+        text += `- Number of eggs relocate: ${crawl.relocatedEggCount !== undefined && crawl.relocatedEggCount !== null ? crawl.relocatedEggCount : '0'}\n`;
+      }
+
+      if (crawl.isTurtleEncounter) {
+        text += `- Sea Turtle Encountered!\n`;
+      }
+
+      if (crawl.notes) {
+        text += `- Notes: ${crawl.notes}\n`;
+      }
+    });
+  }
+
+  // Display only if there are false crawls or possible nests
+  if (falseCrawls.length > 0) {
+    text += `\n`;
+    falseCrawls.forEach((crawl, idx) => {
+      text += `**False Crawl #${idx + 1}**\n`;
+      text += `- Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
+      if (crawl.nestLocationLandmark) {
+        text += `- False Crawl Location: ${crawl.nestLocationLandmark}\n`;
+      }
+      text += `- Position: ${crawl.tidelineRelation || 'Not recorded'}\n`;
+      text += `- Factors: ${crawl.falseCrawlFactors || 'None'}\n`;
+
+      const community = getPointCommunity(crawl.coordinates);
+      if (community) {
+        text += `- Community: ${community}\n`;
+      }
+
+      if (crawl.isTurtleEncounter) {
+        text += `- Sea Turtle Encountered!\n`;
+      }
+
+      if (crawl.isPossibleNest) {
+        text += `- Possible Nest\n`;
+      }
+
+      if (crawl.notes) {
+        text += `- Notes: ${crawl.notes}\n`;
+      }
+    });
+  }
+
+  // Display only if session has patrol notes
+  if (session.notes) {
+    text += `\n`;
+    text += `- Additional Notes: ${session.notes}\n`;
+  }
+
+  return text;
 }

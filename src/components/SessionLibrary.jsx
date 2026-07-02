@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, Calendar, Clock, Trash2, ArrowLeft, Download, Mail, Share2, Clipboard, Printer, Plus, X } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { generateTextSummary, exportToCSV, exportToHTML, generateMailtoLink, downloadFile } from '../utils/exportHelpers';
+import { generateTextSummary, exportToCSV, exportToHTML, generateMailtoLink, downloadFile, generateFBPost } from '../utils/exportHelpers';
 import MapView from './MapView';
 import { getPointCommunity } from '../utils/communities';
 
@@ -128,6 +128,15 @@ export default function SessionLibrary({ sessions, setSessions }) {
     navigator.clipboard.writeText(text).then(() => {
       setCopiedId(session.id);
       setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
+
+  const [copiedFBId, setCopiedFBId] = useState(null);
+  const handleCopyFBPost = (session) => {
+    const text = generateFBPost(session);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedFBId(session.id);
+      setTimeout(() => setCopiedFBId(null), 2000);
     });
   };
 
@@ -453,25 +462,40 @@ export default function SessionLibrary({ sessions, setSessions }) {
             <h4 style={{ fontSize: '0.8rem', color: '#e6f1ff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Export & Share Patrol Report</h4>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button className="btn btn-secondary" onClick={() => handleCopyClipboard(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
-                <Clipboard size={14} /> {copiedId === selectedSession.id ? 'Copied!' : 'Copy Text'}
-              </button>
-              
-              <a 
-                href={generateMailtoLink(selectedSession)}
-                className="btn btn-secondary" 
-                style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}
-              >
-                <Mail size={14} /> Email Pre-fill
-              </a>
+               <button className="btn btn-secondary" onClick={() => handleCopyClipboard(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
+                 <Clipboard size={14} /> {copiedId === selectedSession.id ? 'Copied!' : 'Copy Text'}
+               </button>
+               
+               <button 
+                 className="btn btn-secondary" 
+                 onClick={() => handleCopyFBPost(selectedSession)} 
+                 style={{ 
+                   padding: '8px 12px', 
+                   fontSize: '0.78rem', 
+                   borderRadius: '8px',
+                   backgroundColor: copiedFBId === selectedSession.id ? 'rgba(100, 255, 218, 0.1)' : undefined,
+                   borderColor: copiedFBId === selectedSession.id ? '#64ffda' : undefined,
+                   color: copiedFBId === selectedSession.id ? '#64ffda' : undefined
+                 }}
+               >
+                 <Share2 size={14} /> {copiedFBId === selectedSession.id ? 'FB Post Copied!' : 'Copy FB Post'}
+               </button>
 
-              <button className="btn btn-secondary" onClick={() => handleDownloadHTML(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
-                <Download size={14} /> Standalone HTML
-              </button>
+               <a 
+                 href={generateMailtoLink(selectedSession)}
+                 className="btn btn-secondary" 
+                 style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}
+               >
+                 <Mail size={14} /> Email Pre-fill
+               </a>
 
-              <button className="btn btn-secondary" onClick={() => handleDownloadCSV(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
-                <Download size={14} /> CSV Spreadsheet
-              </button>
+               <button className="btn btn-secondary" onClick={() => handleDownloadHTML(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
+                 <Download size={14} /> Standalone HTML
+               </button>
+
+               <button className="btn btn-secondary" onClick={() => handleDownloadCSV(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
+                 <Download size={14} /> CSV Spreadsheet
+               </button>
 
               <button 
                 className="btn btn-secondary" 
