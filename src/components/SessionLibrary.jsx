@@ -3,6 +3,7 @@ import { ChevronRight, Calendar, Clock, Trash2, ArrowLeft, Download, Mail, Share
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { generateTextSummary, exportToCSV, exportToHTML, generateMailtoLink, downloadFile } from '../utils/exportHelpers';
 import MapView from './MapView';
+import { getPointCommunity } from '../utils/communities';
 
 // Helper to convert meters to miles
 const metersToMiles = (m) => (m * 0.000621371).toFixed(2);
@@ -541,6 +542,14 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       ) : (
                         <div><strong>GPS:</strong> {crawl.coordinates?.lat.toFixed(6)}, {crawl.coordinates?.lng.toFixed(6)}</div>
                       )}
+                      {(() => {
+                        const targetCoords = (isNest && !crawl.inSitu) ? crawl.relocationCoords : crawl.coordinates;
+                        const community = getPointCommunity(targetCoords);
+                        if (community) {
+                          return <div><strong>Community:</strong> {community}</div>;
+                        }
+                        return null;
+                      })()}
                       {crawl.nestLocationLandmark && (
                         <div><strong>Nest Location:</strong> {crawl.nestLocationLandmark}</div>
                       )}

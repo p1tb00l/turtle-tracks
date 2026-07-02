@@ -5,6 +5,7 @@ import { getIslandLocation } from '../utils/geocoding';
 import CrawlWizard from './CrawlWizard';
 import MapView from './MapView';
 import SeaTurtle from './SeaTurtle';
+import { getPointCommunity } from '../utils/communities';
 
 // Helper to convert meters to miles
 const metersToMiles = (m) => (m * 0.000621371).toFixed(2);
@@ -599,6 +600,19 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                     <div key={idx} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${crawl.type === 'nest' ? '#64ffda' : '#f4a261'}` }}>
                       <div>
                         <strong style={{ fontSize: '0.9rem', color: '#e6f1ff' }}>Crawl #{idx + 1} - {crawl.type === 'nest' ? 'Confirmed Nest' : 'False Crawl'}</strong>
+                        {(() => {
+                          const isNest = crawl.type === 'nest';
+                          const targetCoords = (isNest && !crawl.inSitu) ? crawl.relocationCoords : crawl.coordinates;
+                          const community = getPointCommunity(targetCoords);
+                          if (community) {
+                            return (
+                              <span style={{ fontSize: '0.72rem', color: '#a5b4fc', display: 'block', marginTop: '1px' }}>
+                                Community: {community}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                         {crawl.nestLocationLandmark && (
                           <span style={{ fontSize: '0.72rem', color: '#64ffda', display: 'block', marginTop: '1px' }}>
                             Loc: {crawl.nestLocationLandmark}
