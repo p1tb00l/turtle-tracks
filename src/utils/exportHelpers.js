@@ -545,8 +545,8 @@ export function generateFBPost(session) {
         text += `- In Situ\n`;
       } else {
         text += `- Relocated Coordinates: ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}\n`;
-        text += `- Number of eggs: ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? crawl.totalEggCount : (crawl.eggCount || '0')}\n`;
-        text += `- Number of eggs relocate: ${crawl.relocatedEggCount !== undefined && crawl.relocatedEggCount !== null ? crawl.relocatedEggCount : '0'}\n`;
+        text += `- Number of Eggs: ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? crawl.totalEggCount : (crawl.eggCount || '0')}\n`;
+        text += `- Number of Eggs Relocated: ${crawl.relocatedEggCount !== undefined && crawl.relocatedEggCount !== null ? crawl.relocatedEggCount : '0'}\n`;
       }
 
       if (crawl.isTurtleEncounter) {
