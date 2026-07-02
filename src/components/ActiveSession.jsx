@@ -599,7 +599,9 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                   activeSession.crawls.map((crawl, idx) => (
                     <div key={idx} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${crawl.type === 'nest' ? '#64ffda' : '#f4a261'}` }}>
                       <div>
-                        <strong style={{ fontSize: '0.9rem', color: '#e6f1ff' }}>Crawl #{idx + 1} - {crawl.type === 'nest' ? 'Confirmed Nest' : 'False Crawl'}</strong>
+                        <strong style={{ fontSize: '0.9rem', color: '#e6f1ff' }}>
+                          Crawl #{idx + 1} - {crawl.type === 'nest' ? 'Confirmed Nest' : `False Crawl${crawl.falseCrawlNumber ? ` #${crawl.falseCrawlNumber}` : ''}`}
+                        </strong>
                         {(() => {
                           const isNest = crawl.type === 'nest';
                           const targetCoords = (isNest && !crawl.inSitu) ? crawl.relocationCoords : crawl.coordinates;

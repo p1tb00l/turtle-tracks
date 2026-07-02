@@ -23,6 +23,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [crossedOut, setCrossedOut] = useState(false);
   const [isPossibleNest, setIsPossibleNest] = useState(false);
   const [markedPost, setMarkedPost] = useState(false);
+  const [falseCrawlNumber, setFalseCrawlNumber] = useState('');
 
   const [notes, setNotes] = useState('');
   const [nestCardDone, setNestCardDone] = useState(false);
@@ -146,6 +147,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           timestamp: new Date().toISOString(),
           coordinates: finalCoords,
           nestLocationLandmark,
+          falseCrawlNumber,
           photos,
           tidelineRelation,
           falseCrawlFactors,
@@ -795,6 +797,21 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                   value={nestLocationLandmark}
                   onChange={(e) => setNestLocationLandmark(e.target.value)}
                   placeholder="e.g. 100 ft South of Marker 14, in front of Webb House"
+                  className="form-input"
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
+              {/* False Crawl Number Field */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">False Crawl / Possible Nest Number (integer)</label>
+                <input 
+                  type="number" 
+                  step="1"
+                  min="1"
+                  value={falseCrawlNumber}
+                  onChange={(e) => setFalseCrawlNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="e.g. 72"
                   className="form-input"
                   style={{ fontSize: '0.85rem' }}
                 />
