@@ -583,6 +583,11 @@ export default function SessionLibrary({ sessions, setSessions }) {
                         <>
                           <div><strong>Factors:</strong> {crawl.falseCrawlFactors}</div>
                           {crawl.isPossibleNest && <div><strong>Possible Nest:</strong> Yes</div>}
+                          {crawl.isTurtleEncounter && (
+                            <div style={{ color: '#a5b4fc', marginTop: '4px', fontWeight: '600' }}>
+                              🐢 Turtle Encounter Logged {crawl.flipperPitTag ? `(Tag: ${crawl.flipperPitTag})` : (crawl.flipperTagLeft || crawl.flipperTagRight ? `(Tags: ${crawl.flipperTagLeft || 'None'}/${crawl.flipperTagRight || 'None'})` : '')}
+                            </div>
+                          )}
                         </>
                       )}
                       {crawl.notes && <div style={{ marginTop: '4px' }}><strong>Notes:</strong> {crawl.notes}</div>}
