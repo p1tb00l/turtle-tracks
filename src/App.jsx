@@ -37,7 +37,22 @@ function App() {
       // Sort sessions by startTime descending to keep the newest ones
       const sorted = [...updated].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
       const truncated = sorted.slice(0, 10);
-      alert(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${sorted.length - 10} session logs have been automatically deleted from local storage to save space.`);
+      const toRemove = sorted.slice(10);
+
+      // Offer to download JSON for all pruned sessions
+      if (window.confirm(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${toRemove.length} session logs will be automatically deleted to save local storage space.\n\nWould you like to download JSON backup files for these older sessions before they are deleted?`)) {
+        toRemove.forEach((session) => {
+          const jsonStr = JSON.stringify(session, null, 2);
+          const link = document.createElement('a');
+          const file = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+          link.href = URL.createObjectURL(file);
+          link.download = `Backup_Stale_Session_${session.id}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        });
+      }
       setSessions(truncated);
     } else {
       setSessions(updated);

@@ -28,10 +28,25 @@ export default function SessionLibrary({ sessions, setSessions }) {
   // Auto-cleanup helper: automatically keep the 10 most recent sessions
   const limitSessionCount = (updatedList) => {
     if (updatedList.length > 10) {
-      // Sort sessions by startTime descending to keep the newest ones
+      // Sort sessions by startTime descending to identify the oldest ones
       const sorted = [...updatedList].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
       const truncated = sorted.slice(0, 10);
-      alert(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${sorted.length - 10} session logs have been automatically deleted from local storage to save space.`);
+      const toRemove = sorted.slice(10);
+
+      // Offer to download JSON for all pruned sessions
+      if (window.confirm(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${toRemove.length} session logs will be automatically deleted to save local storage space.\n\nWould you like to download JSON backup files for these older sessions before they are deleted?`)) {
+        toRemove.forEach((session) => {
+          const jsonStr = JSON.stringify(session, null, 2);
+          const link = document.createElement('a');
+          const file = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+          link.href = URL.createObjectURL(file);
+          link.download = `Backup_Stale_Session_${session.id}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        });
+      }
       return truncated;
     }
     return updatedList;
@@ -292,7 +307,22 @@ export default function SessionLibrary({ sessions, setSessions }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontSize: '1.4rem', color: '#e6f1ff', marginBottom: '6px' }}>Session Library</h2>
-            <p style={{ fontSize: '0.85rem', color: '#8892b0' }}>Browse and export completed shoreline patrols</p>
+            <p style={{ fontSize: '0.85rem', color: '#8892b0', marginBottom: '12px' }}>Browse and export completed shoreline patrols</p>
+            
+            {/* Storage Limit Notice Warning Box */}
+            <div style={{
+              backgroundColor: 'rgba(244, 162, 97, 0.08)',
+              border: '1px solid rgba(244, 162, 97, 0.4)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              fontSize: '0.78rem',
+              color: '#f4a261',
+              textAlign: 'left',
+              lineHeight: '1.4',
+              marginBottom: '15px'
+            }}>
+              <strong>⚠️ Storage Warning:</strong> To prevent device memory crashes, only up to <strong>10 sessions</strong> can be saved in local storage. Once exceeded, the oldest sessions will be overwritten. You will be prompted to download JSON backup files for any sessions that are deleted.
+            </div>
           </div>
 
           {/* Import Session Button */}
