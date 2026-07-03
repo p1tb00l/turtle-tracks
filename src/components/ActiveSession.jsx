@@ -663,15 +663,53 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                     if (!file) return;
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                      const updatedPhotos = [...(activeSession.photos || []), {
-                        id: Date.now().toString(),
-                        dataUrl: event.target.result,
-                        tag: 'Session Detail',
-                        timestamp: new Date().toISOString()
-                      }];
-                      const updatedSession = { ...activeSession, photos: updatedPhotos };
-                      setActiveSession(updatedSession);
-                      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                      const img = new Image();
+                      img.onload = () => {
+                        try {
+                          const canvas = document.createElement('canvas');
+                          const maxDim = 800;
+                          let width = img.naturalWidth || img.width;
+                          let height = img.naturalHeight || img.height;
+
+                          if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                              height = Math.round((height * maxDim) / width);
+                              width = maxDim;
+                            } else {
+                              width = Math.round((width * maxDim) / height);
+                              height = maxDim;
+                            }
+                          }
+
+                          canvas.width = width;
+                          canvas.height = height;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(img, 0, 0, width, height);
+
+                          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                          const updatedPhotos = [...(activeSession.photos || []), {
+                            id: Date.now().toString(),
+                            dataUrl: compressedDataUrl,
+                            tag: 'Session Detail',
+                            timestamp: new Date().toISOString()
+                          }];
+                          const updatedSession = { ...activeSession, photos: updatedPhotos };
+                          setActiveSession(updatedSession);
+                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                        } catch (err) {
+                          console.error("Session photo compression failed, using fallback:", err);
+                          const updatedPhotos = [...(activeSession.photos || []), {
+                            id: Date.now().toString(),
+                            dataUrl: event.target.result,
+                            tag: 'Session Detail',
+                            timestamp: new Date().toISOString()
+                          }];
+                          const updatedSession = { ...activeSession, photos: updatedPhotos };
+                          setActiveSession(updatedSession);
+                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                        }
+                      };
+                      img.src = event.target.result;
                     };
                     reader.readAsDataURL(file);
                   }} 
@@ -688,15 +726,53 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                     if (!file) return;
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                      const updatedPhotos = [...(activeSession.photos || []), {
-                        id: Date.now().toString(),
-                        dataUrl: event.target.result,
-                        tag: 'Session Detail',
-                        timestamp: new Date().toISOString()
-                      }];
-                      const updatedSession = { ...activeSession, photos: updatedPhotos };
-                      setActiveSession(updatedSession);
-                      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                      const img = new Image();
+                      img.onload = () => {
+                        try {
+                          const canvas = document.createElement('canvas');
+                          const maxDim = 800;
+                          let width = img.naturalWidth || img.width;
+                          let height = img.naturalHeight || img.height;
+
+                          if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                              height = Math.round((height * maxDim) / width);
+                              width = maxDim;
+                            } else {
+                              width = Math.round((width * maxDim) / height);
+                              height = maxDim;
+                            }
+                          }
+
+                          canvas.width = width;
+                          canvas.height = height;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(img, 0, 0, width, height);
+
+                          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                          const updatedPhotos = [...(activeSession.photos || []), {
+                            id: Date.now().toString(),
+                            dataUrl: compressedDataUrl,
+                            tag: 'Session Detail',
+                            timestamp: new Date().toISOString()
+                          }];
+                          const updatedSession = { ...activeSession, photos: updatedPhotos };
+                          setActiveSession(updatedSession);
+                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                        } catch (err) {
+                          console.error("Session photo compression failed, using fallback:", err);
+                          const updatedPhotos = [...(activeSession.photos || []), {
+                            id: Date.now().toString(),
+                            dataUrl: event.target.result,
+                            tag: 'Session Detail',
+                            timestamp: new Date().toISOString()
+                          }];
+                          const updatedSession = { ...activeSession, photos: updatedPhotos };
+                          setActiveSession(updatedSession);
+                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+                        }
+                      };
+                      img.src = event.target.result;
                     };
                     reader.readAsDataURL(file);
                   }} 
