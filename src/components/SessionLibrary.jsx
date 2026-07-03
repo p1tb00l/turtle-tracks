@@ -25,13 +25,13 @@ export default function SessionLibrary({ sessions, setSessions }) {
   // Batch selection state
   const [selectedSessionIds, setSelectedSessionIds] = useState([]);
 
-  // Auto-cleanup helper: automatically keep the 100 most recent sessions
+  // Auto-cleanup helper: automatically keep the 10 most recent sessions
   const limitSessionCount = (updatedList) => {
-    if (updatedList.length > 100) {
+    if (updatedList.length > 10) {
       // Sort sessions by startTime descending to keep the newest ones
       const sorted = [...updatedList].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-      const truncated = sorted.slice(0, 100);
-      alert(`Notice: Stored completed sessions list exceeded the 100 logs limit. The oldest ${sorted.length - 100} session logs have been automatically deleted from local storage to save space.`);
+      const truncated = sorted.slice(0, 10);
+      alert(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${sorted.length - 10} session logs have been automatically deleted from local storage to save space.`);
       return truncated;
     }
     return updatedList;

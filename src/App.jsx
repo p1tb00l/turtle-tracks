@@ -33,11 +33,11 @@ function App() {
 
   const handleSessionComplete = (newSession) => {
     const updated = [newSession, ...sessions];
-    if (updated.length > 100) {
+    if (updated.length > 10) {
       // Sort sessions by startTime descending to keep the newest ones
       const sorted = [...updated].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-      const truncated = sorted.slice(0, 100);
-      alert(`Notice: Stored completed sessions list exceeded the 100 logs limit. The oldest ${sorted.length - 100} session logs have been automatically deleted from local storage to save space.`);
+      const truncated = sorted.slice(0, 10);
+      alert(`Notice: Stored completed sessions list exceeded the 10 logs limit. The oldest ${sorted.length - 10} session logs have been automatically deleted from local storage to save space.`);
       setSessions(truncated);
     } else {
       setSessions(updated);
