@@ -162,6 +162,49 @@ export default function SessionLibrary({ sessions, setSessions }) {
     downloadFile(html, `TurtleTracks_Report_${session.id}.html`, 'text/html;charset=utf-8;');
   };
 
+  const handleDownloadJSON = (session) => {
+    const jsonStr = JSON.stringify(session, null, 2);
+    downloadFile(jsonStr, `TurtleTracks_Session_${session.id}.json`, 'application/json;charset=utf-8;');
+  };
+
+  const handleImportJSON = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedSession = JSON.parse(event.target.result);
+        
+        // Validation checks
+        if (!importedSession.id || !importedSession.startTime) {
+          alert("Invalid session file: Missing required session identifiers.");
+          return;
+        }
+
+        // Check if session already exists
+        const exists = sessions.some(s => s.id === importedSession.id);
+        if (exists) {
+          if (!window.confirm("A session with this ID already exists. Would you like to overwrite it?")) {
+            return;
+          }
+          // Overwrite existing
+          setSessions(sessions.map(s => s.id === importedSession.id ? importedSession : s));
+          alert("Session overwritten successfully!");
+        } else {
+          // Add new
+          setSessions([importedSession, ...sessions]);
+          alert("Session imported successfully!");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to parse JSON file: Make sure the file format is valid.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset file input
+  };
+
   const handleDownloadAllImages = (session) => {
     // Collect all photos from crawls and overall session photos
     const allPhotos = [];
@@ -220,6 +263,35 @@ export default function SessionLibrary({ sessions, setSessions }) {
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontSize: '1.4rem', color: '#e6f1ff', marginBottom: '6px' }}>Session Library</h2>
             <p style={{ fontSize: '0.85rem', color: '#8892b0' }}>Browse and export completed shoreline patrols</p>
+          </div>
+
+          {/* Import Session Button */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <label 
+              className="btn btn-secondary" 
+              style={{ 
+                cursor: 'pointer', 
+                padding: '10px 16px', 
+                borderRadius: '8px', 
+                fontSize: '0.8rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px',
+                width: '100%',
+                backgroundColor: 'rgba(2, 12, 27, 0.4)',
+                border: '1px dashed rgba(100, 255, 218, 0.4)',
+                color: '#64ffda'
+              }}
+            >
+              <Plus size={14} /> Import Session (.json)
+              <input 
+                type="file" 
+                accept=".json" 
+                onChange={handleImportJSON} 
+                style={{ display: 'none' }} 
+              />
+            </label>
           </div>
 
           {sessions.length === 0 ? (
@@ -495,6 +567,10 @@ export default function SessionLibrary({ sessions, setSessions }) {
 
                <button className="btn btn-secondary" onClick={() => handleDownloadCSV(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
                  <Download size={14} /> CSV Spreadsheet
+               </button>
+
+               <button className="btn btn-secondary" onClick={() => handleDownloadJSON(selectedSession)} style={{ padding: '8px 12px', fontSize: '0.78rem', borderRadius: '8px' }}>
+                 <Download size={14} /> JSON Session Backup
                </button>
 
               <button 
