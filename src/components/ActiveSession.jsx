@@ -387,9 +387,14 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       locationName: locName !== 'Acquiring Location...' ? locName : baseSession.locationName
     };
     
-    localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
-    setActiveSession(updatedSession);
-    setShowWizard(false);
+    try {
+      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+      setActiveSession(updatedSession);
+      setShowWizard(false);
+    } catch (error) {
+      console.error("Failed to save session crawl: local storage quota exceeded", error);
+      alert("CRITICAL ERROR: Failed to save crawl log. Your device's browser local storage is FULL. Please go to the completed patrols tab and download/delete older sessions or clear your browser cache to make room.");
+    }
   };
 
   // Handle Ending a Session
