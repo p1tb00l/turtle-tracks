@@ -198,6 +198,19 @@ export function useGeolocation(isTracking = false, options = {}) {
       return;
     }
 
+    // Request screen wake lock to keep GPS active when screen locks/backgrounds
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.warn('Wake Lock request failed:', err);
+      }
+    };
+    requestWakeLock();
+
     const lastTimestampRef = { current: Date.now() };
     let tentativePoints = [];
 
@@ -231,18 +244,17 @@ export function useGeolocation(isTracking = false, options = {}) {
           return [newLoc];
         }
         
-        const lastLoc = prevPath[prevPath.length - 1];
+        // Always refer to lastLocationRef.current for the absolute last known real coordinate
+        const lastLoc = lastLocationRef.current || prevPath[prevPath.length - 1];
         const distMoved = calculateDistance(lastLoc, newLoc);
-        const timeElapsedSec = (now - lastTimestampRef.current) / 1000;
+        const timeElapsedSec = Math.max((now - lastTimestampRef.current) / 1000, 0.1);
         const maxSpeedMPS = 11.176; // 25 mph converted to meters per second
 
         // 2. SPEED FILTER: Check speed relative to the last confirmed point
         let isSpeedInvalid = false;
-        if (timeElapsedSec > 1) {
-          const speedMPS = distMoved / timeElapsedSec;
-          if (speedMPS > maxSpeedMPS) {
-            isSpeedInvalid = true;
-          }
+        const speedMPS = distMoved / timeElapsedSec;
+        if (speedMPS > maxSpeedMPS) {
+          isSpeedInvalid = true;
         }
 
         if (isSpeedInvalid) {
@@ -339,6 +351,9 @@ export function useGeolocation(isTracking = false, options = {}) {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
+      }
+      if (wakeLock) {
+        wakeLock.release().catch(err => console.warn('Wake Lock release failed:', err));
       }
     };
   }, [isTracking, isSimulated, options]);

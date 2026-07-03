@@ -1,14 +1,25 @@
 // Ray-casting algorithm to determine if a point is inside a polygon
+// Supports point as {lat, lng} and polygon coordinates as array of [lat, lng] or [lng, lat]
 export function isPointInPolygon(point, polygon) {
-  const x = point.lng || point[0];
-  const y = point.lat || point[1];
+  const x = point.lng !== undefined ? point.lng : point[0];
+  const y = point.lat !== undefined ? point.lat : point[1];
   let inside = false;
 
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i][0];
-    const yi = polygon[i][1];
-    const xj = polygon[j][0];
-    const yj = polygon[j][1];
+    let xi = polygon[i][0];
+    let yi = polygon[i][1];
+    let xj = polygon[j][0];
+    let yj = polygon[j][1];
+
+    // If coordinates are [lat, lng] (e.g. lat is ~32, lng is ~-80), swap them so xi is lng, yi is lat
+    if (Math.abs(xi) > 50 && Math.abs(yi) < 50) {
+      const tempI = xi;
+      xi = yi;
+      yi = tempI;
+      const tempJ = xj;
+      xj = yj;
+      yj = tempJ;
+    }
 
     const intersect = ((yi > y) !== (yj > y)) &&
       (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
