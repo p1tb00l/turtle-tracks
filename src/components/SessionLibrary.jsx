@@ -22,6 +22,21 @@ export default function SessionLibrary({ sessions, setSessions }) {
   const [activePickerCrawlIndex, setActivePickerCrawlIndex] = useState(null);
   const [selectedPreviewPhoto, setSelectedPreviewPhoto] = useState(null);
 
+  // Batch selection state
+  const [selectedSessionIds, setSelectedSessionIds] = useState([]);
+
+  // Auto-cleanup helper: automatically keep the 100 most recent sessions
+  const limitSessionCount = (updatedList) => {
+    if (updatedList.length > 100) {
+      // Sort sessions by startTime descending to keep the newest ones
+      const sorted = [...updatedList].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+      const truncated = sorted.slice(0, 100);
+      alert(`Notice: Stored completed sessions list exceeded the 100 logs limit. The oldest ${sorted.length - 100} session logs have been automatically deleted from local storage to save space.`);
+      return truncated;
+    }
+    return updatedList;
+  };
+
   const selectedSession = sessions.find((s) => s.id === selectedSessionId);
 
   const handleBackToList = () => {
@@ -116,8 +131,22 @@ export default function SessionLibrary({ sessions, setSessions }) {
   const handleDeleteSession = (id, e) => {
     e.stopPropagation(); // Avoid selecting row when clicking delete
     if (window.confirm('Are you sure you want to delete this session log? This cannot be undone.')) {
-      setSessions(sessions.filter((s) => s.id !== id));
+      const remaining = sessions.filter((s) => s.id !== id);
+      setSessions(remaining);
+      setSelectedSessionIds(prev => prev.filter(sid => sid !== id));
       if (selectedSessionId === id) {
+        setSelectedSessionId(null);
+      }
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedSessionIds.length === 0) return;
+    if (window.confirm(`Are you sure you want to delete the ${selectedSessionIds.length} selected session logs? This cannot be undone.`)) {
+      const remaining = sessions.filter((s) => !selectedSessionIds.includes(s.id));
+      setSessions(remaining);
+      setSelectedSessionIds([]);
+      if (selectedSessionIds.includes(selectedSessionId)) {
         setSelectedSessionId(null);
       }
     }
@@ -143,12 +172,11 @@ export default function SessionLibrary({ sessions, setSessions }) {
   const handleNativeShare = (session) => {
     if (navigator.share) {
       navigator.share({
-        title: `TurtleTracks Beach Log - ${new Date(session.startTime).toLocaleDateString()}`,
+        title: `Shoreline Patrol Summary - ${session.locationName}`,
         text: generateTextSummary(session)
-      }).catch(err => console.warn('Native share failed:', err));
+      }).catch(console.error);
     } else {
-      // Fallback
-      alert('Native sharing is not supported on this browser. Try copying to clipboard.');
+      alert("Web Sharing API not supported on this browser/device.");
     }
   };
 
@@ -189,11 +217,13 @@ export default function SessionLibrary({ sessions, setSessions }) {
             return;
           }
           // Overwrite existing
-          setSessions(sessions.map(s => s.id === importedSession.id ? importedSession : s));
+          const updated = sessions.map(s => s.id === importedSession.id ? importedSession : s);
+          setSessions(limitSessionCount(updated));
           alert("Session overwritten successfully!");
         } else {
           // Add new
-          setSessions([importedSession, ...sessions]);
+          const updated = [importedSession, ...sessions];
+          setSessions(limitSessionCount(updated));
           alert("Session imported successfully!");
         }
       } catch (err) {
@@ -266,7 +296,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
           </div>
 
           {/* Import Session Button */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <label 
               className="btn btn-secondary" 
               style={{ 
@@ -278,7 +308,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 gap: '8px',
-                width: '100%',
+                flex: 1,
                 backgroundColor: 'rgba(2, 12, 27, 0.4)',
                 border: '1px dashed rgba(100, 255, 218, 0.4)',
                 color: '#64ffda'
@@ -292,7 +322,51 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 style={{ display: 'none' }} 
               />
             </label>
+
+            {selectedSessionIds.length > 0 && (
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteSelected}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  flex: 1,
+                  backgroundColor: '#ff7a59',
+                  color: '#020c1b',
+                  fontWeight: '600'
+                }}
+              >
+                <Trash2 size={14} /> Delete Selected ({selectedSessionIds.length})
+              </button>
+            )}
           </div>
+
+          {sessions.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: '#8892b0' }}>
+                {selectedSessionIds.length} of {sessions.length} selected
+              </span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setSelectedSessionIds(sessions.map(s => s.id))}
+                  style={{ background: 'none', border: 'none', color: '#64ffda', fontSize: '0.75rem', cursor: 'pointer', padding: '4px' }}
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => setSelectedSessionIds([])}
+                  style={{ background: 'none', border: 'none', color: '#8892b0', fontSize: '0.75rem', cursor: 'pointer', padding: '4px' }}
+                >
+                  Deselect All
+                </button>
+              </div>
+            </div>
+          )}
 
           {sessions.length === 0 ? (
             <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', color: '#8892b0', fontStyle: 'italic', fontSize: '0.9rem' }}>
@@ -307,6 +381,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
                 
                 const nestsCount = session.crawls?.filter(c => c.type === 'nest').length || 0;
                 const falseCount = session.crawls?.filter(c => c.type === 'false_crawl').length || 0;
+                const isChecked = selectedSessionIds.includes(session.id);
 
                 return (
                   <div 
@@ -318,23 +393,40 @@ export default function SessionLibrary({ sessions, setSessions }) {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      padding: '16px'
+                      padding: '16px',
+                      border: isChecked ? '1px solid #64ffda' : '1px solid var(--panel-border)',
+                      backgroundColor: isChecked ? 'rgba(100, 255, 218, 0.03)' : 'rgba(2, 12, 27, 0.4)'
                     }}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <strong style={{ color: '#e6f1ff', fontSize: '0.95rem' }}>{session.locationName || 'Daufuskie Shoreline'}</strong>
-                      <span style={{ fontSize: '0.75rem', color: '#8892b0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={12} /> {date}
-                        &bull;
-                        <Clock size={12} /> {formatDuration(session.duration || 0)}
-                      </span>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                        <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: 'rgba(100, 255, 218, 0.1)', color: '#64ffda', fontWeight: '600' }}>
-                          {nestsCount} Nests
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedSessionIds(prev => [...prev, session.id]);
+                          } else {
+                            setSelectedSessionIds(prev => prev.filter(id => id !== session.id));
+                          }
+                        }}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#64ffda' }}
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <strong style={{ color: '#e6f1ff', fontSize: '0.95rem' }}>{session.locationName || 'Daufuskie Shoreline'}</strong>
+                        <span style={{ fontSize: '0.75rem', color: '#8892b0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={12} /> {date}
+                          &bull;
+                          <Clock size={12} /> {formatDuration(session.duration || 0)}
                         </span>
-                        <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: 'rgba(244, 162, 97, 0.1)', color: '#f4a261', fontWeight: '600' }}>
-                          {falseCount} False
-                        </span>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                          <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: 'rgba(100, 255, 218, 0.1)', color: '#64ffda', fontWeight: '600' }}>
+                            {nestsCount} Nests
+                          </span>
+                          <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: 'rgba(244, 162, 97, 0.1)', color: '#f4a261', fontWeight: '600' }}>
+                            {falseCount} False
+                          </span>
+                        </div>
                       </div>
                     </div>
 
