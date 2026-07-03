@@ -16,18 +16,57 @@ export default function QuickCamera() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const newPhoto = {
-        id: Date.now().toString(),
-        dataUrl: event.target.result,
-        tag: currentTag,
-        notes: currentNotes,
-        timestamp: new Date().toISOString()
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800; // Resize to a maximum of 800px to drastically reduce base64 size
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG with 0.7 quality to target 30-50KB size
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+          const newPhoto = {
+            id: Date.now().toString(),
+            dataUrl: compressedDataUrl,
+            tag: currentTag,
+            notes: currentNotes,
+            timestamp: new Date().toISOString()
+          };
+          setPhotos([newPhoto, ...photos]);
+          setCurrentNotes('');
+          setSelectedPhoto(newPhoto);
+        } catch (err) {
+          console.error("Quick camera photo compression failed, using fallback:", err);
+          const newPhoto = {
+            id: Date.now().toString(),
+            dataUrl: event.target.result,
+            tag: currentTag,
+            notes: currentNotes,
+            timestamp: new Date().toISOString()
+          };
+          setPhotos([newPhoto, ...photos]);
+          setCurrentNotes('');
+          setSelectedPhoto(newPhoto);
+        }
       };
-      setPhotos([newPhoto, ...photos]);
-      setCurrentNotes('');
-      
-      // Select for preview immediately
-      setSelectedPhoto(newPhoto);
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
