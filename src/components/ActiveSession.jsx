@@ -6,6 +6,7 @@ import CrawlWizard from './CrawlWizard';
 import MapView from './MapView';
 import SeaTurtle from './SeaTurtle';
 import { getPointCommunity } from '../utils/communities';
+import { idb } from '../utils/idb';
 
 // Helper to convert meters to miles
 const metersToMiles = (m) => (m * 0.000621371).toFixed(2);
@@ -362,21 +363,23 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
         beachCoverage,
         locationName: locName !== 'Acquiring Location...' ? locName : activeSession.locationName
       };
-      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedState));
+      idb.set('turtletracks_active_session', updatedState)
+        .catch(e => console.error("Failed to sync active session GPS updates to IndexedDB:", e));
     }
   }, [path, distance, beachCoverage, locName, showWizard]);
 
   // Handle Crawl Documentation
-  const handleSaveCrawl = (crawlData) => {
-    const currentSessionStr = localStorage.getItem('turtletracks_active_session');
+  const handleSaveCrawl = async (crawlData) => {
     let baseSession = activeSession;
-    if (currentSessionStr) {
-      try {
-        baseSession = JSON.parse(currentSessionStr);
-      } catch (e) {
-        console.error("Failed to parse localStorage active session:", e);
+    try {
+      const currentSessionVal = await idb.get('turtletracks_active_session');
+      if (currentSessionVal) {
+        baseSession = currentSessionVal;
       }
+    } catch (e) {
+      console.error("Failed to read active session from IndexedDB:", e);
     }
+    
     const updatedCrawls = [...(baseSession.crawls || []), crawlData];
     const updatedSession = {
       ...baseSession,
@@ -388,12 +391,12 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     };
     
     try {
-      localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
+      await idb.set('turtletracks_active_session', updatedSession);
       setActiveSession(updatedSession);
       setShowWizard(false);
     } catch (error) {
-      console.error("Failed to save session crawl: local storage quota exceeded", error);
-      alert("CRITICAL ERROR: Failed to save crawl log. Your device's browser local storage is FULL. Please go to the completed patrols tab and download/delete older sessions or clear your browser cache to make room.");
+      console.error("Failed to save session crawl to IndexedDB:", error);
+      alert("CRITICAL ERROR: Failed to save crawl log to IndexedDB database.");
     }
   };
 
