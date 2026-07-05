@@ -264,32 +264,61 @@ export default function SessionLibrary({ sessions, setSessions }) {
         // Draw the original photo
         ctx.drawImage(img, 0, 0);
         
-        // Setup banner parameters
-        const bannerHeight = Math.max(40, Math.round(canvas.height * 0.12));
-        ctx.fillStyle = 'rgba(2, 12, 27, 0.75)';
+        // Prepare text content to draw
+        const textParts = [];
+        if (extraInfo) textParts.push(extraInfo);
+        if (photo.notes) textParts.push(`Notes: ${photo.notes}`);
+        const subtitleText = textParts.join(' | ');
+
+        // Configure font styles to calculate wraps
+        const titleFontSize = Math.max(14, Math.round(canvas.height * 0.024));
+        const bodyFontSize = Math.max(11, Math.round(canvas.height * 0.018));
+        const lineSpacing = Math.round(bodyFontSize * 0.3);
+        const padding = Math.max(10, Math.round(canvas.width * 0.03));
+        const maxWidth = canvas.width - (padding * 2);
+
+        // Calculate notes wrapping lines
+        ctx.font = `${bodyFontSize}px sans-serif`;
+        const words = subtitleText.split(' ');
+        const lines = [];
+        let currentLine = '';
+
+        for (let i = 0; i < words.length; i++) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + words[i];
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = words[i];
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+
+        // Draw dynamic size banner background
+        const bannerHeight = titleFontSize + (lines.length * (bodyFontSize + lineSpacing)) + (padding * 2);
+        ctx.fillStyle = 'rgba(2, 12, 27, 0.82)';
         ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
         
-        // Draw texts
-        const fontSize = Math.max(12, Math.round(bannerHeight * 0.22));
-        ctx.font = `600 ${fontSize}px sans-serif`;
+        // Draw Title / Tag
+        ctx.font = `600 ${titleFontSize}px sans-serif`;
         ctx.fillStyle = '#64ffda';
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        
-        // Line 1: Tag
+        ctx.textBaseline = 'top';
         const tagText = `${photo.tag || 'Field Log'}`.toUpperCase();
-        ctx.fillText(tagText, 15, canvas.height - (bannerHeight * 0.65));
+        ctx.fillText(tagText, padding, canvas.height - bannerHeight + padding);
         
-        // Line 2: GPS/Timestamp/Comments
-        ctx.font = `${Math.max(10, Math.round(bannerHeight * 0.18))}px sans-serif`;
+        // Draw Wrapped Notes Lines
+        ctx.font = `${bodyFontSize}px sans-serif`;
         ctx.fillStyle = '#8892b0';
+        let currentY = canvas.height - bannerHeight + padding + titleFontSize + lineSpacing + 4;
         
-        const parts = [];
-        if (extraInfo) parts.push(extraInfo);
-        if (photo.notes) parts.push(`Notes: ${photo.notes}`);
-        
-        const detailText = parts.join(' | ');
-        ctx.fillText(detailText, 15, canvas.height - (bannerHeight * 0.3));
+        for (let j = 0; j < lines.length; j++) {
+          ctx.fillText(lines[j], padding, currentY);
+          currentY += bodyFontSize + lineSpacing;
+        }
         
         resolve(canvas.toDataURL('image/jpeg', 0.9));
       };
@@ -316,12 +345,11 @@ export default function SessionLibrary({ sessions, setSessions }) {
       const crawlLabel = isNest 
         ? (crawl.nestNumber ? `Nest #${crawl.nestNumber}` : `Nest (Unnumbered)`) 
         : (crawl.falseCrawlNumber ? `FC #${crawl.falseCrawlNumber}` : `FC (Unnumbered)`);
-      const gpsStr = crawl.coordinates ? `GPS: ${crawl.coordinates.lat.toFixed(6)}, ${crawl.coordinates.lng.toFixed(6)}` : '';
-      const info = `${crawlLabel} | ${gpsStr}`;
+      // Exclude coordinates for crawl photos as requested by user
       (crawl.photos || []).forEach((photo, pIdx) => {
         allPhotos.push({
           photo: photo,
-          info: info,
+          info: crawlLabel,
           fileName: `Session_${session.id}_${crawlLabel.replace(/[^a-zA-Z0-9]/g, '_')}_Photo_${pIdx + 1}_${photo.id}.jpg`
         });
       });
@@ -363,8 +391,8 @@ export default function SessionLibrary({ sessions, setSessions }) {
         const crawlLabel = isNest 
           ? (crawl.nestNumber ? `Nest #${crawl.nestNumber}` : `Nest (Unnumbered)`) 
           : (crawl.falseCrawlNumber ? `FC #${crawl.falseCrawlNumber}` : `FC (Unnumbered)`);
-        const gpsStr = crawl.coordinates ? `GPS: ${crawl.coordinates.lat.toFixed(6)}, ${crawl.coordinates.lng.toFixed(6)}` : '';
-        info = `${crawlLabel} | ${gpsStr}`;
+        // Exclude coordinates for crawl photos as requested by user
+        info = crawlLabel;
       }
     }
 
