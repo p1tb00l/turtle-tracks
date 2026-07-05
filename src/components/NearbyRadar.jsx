@@ -399,10 +399,10 @@ export default function NearbyRadar({ userLocation }) {
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
           {[
             { id: 'all', label: 'All' },
-            { id: 'nests', label: 'Confirmed Nests' },
+            { id: 'nests', label: 'Confirmed' },
             { id: 'relocated', label: 'Relocated' },
             { id: 'crawls', label: 'False Crawls' },
-            { id: 'possible', label: 'Possible Nests' }
+            { id: 'possible', label: 'Possible' }
           ].map(chip => {
             const isActive = activeFilter === chip.id;
             return (
