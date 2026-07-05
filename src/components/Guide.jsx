@@ -60,35 +60,29 @@ export default function Guide() {
         {activeSection === 'nest_chamber' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ color: '#64ffda', borderBottom: '1px solid rgba(100, 255, 218, 0.2)', paddingBottom: '8px' }}>Locating the Nest Chamber</h3>
-            
-            <p style={{ fontSize: '0.9rem', color: '#8892b0' }}>
-              Volunteers must use crawl tracks anatomy and standard search checklists to pinpoint where the turtle deposited her clutch:
-            </p>
 
-            <div className="glass-card" style={{ borderLeft: '4px solid #64ffda', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <h4 style={{ color: '#e6f1ff', fontSize: '1rem', marginBottom: '2px' }}>Probing & Search Checklist</h4>
-              <ul style={{ paddingLeft: '20px', fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <li>Probe grid area around suspected body pit using leg weight (never arms).</li>
-                <li>Find soft spot where probe suddenly gives way to cavity (chamber top).</li>
-                <li><strong>Dig carefully by hand only</strong> (do not use shovels) once soft spot is verified.</li>
-                <li>Feel for first egg to confirm nest chamber.</li>
-              </ul>
+            <div style={{ backgroundColor: 'rgba(255, 122, 89, 0.1)', borderLeft: '4px solid #ff7a59', padding: '12px', borderRadius: '4px', fontSize: '0.85rem' }}>
+              <strong>CRITICAL RULE:</strong> Always probe using the weight of your body and your <strong>legs</strong>. Never use your arms/wrists to push the probe into the sand, as you may crush the eggs or misread the resistance change.
             </div>
 
             <div className="glass-card" style={{ borderLeft: '4px solid #f4a261', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <h4 style={{ color: '#e6f1ff', fontSize: '1rem', marginBottom: '2px' }}>Locating the Chamber via Crawl Anatomy</h4>
+              <p style={{ fontSize: '0.82rem', color: '#8892b0', fontStyle: 'italic', margin: '0 0 4px 0' }}>
+                Note: Every crawl is unique, but these guidelines can help to locate the chamber in a typical crawl.
+              </p>
+              
               <div style={{ fontSize: '0.85rem', color: '#8892b0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
-                  <strong style={{ color: '#e6f1ff' }}>1. Locate the Primary Sand Mound:</strong> Identify the large, heavy mound of dry sand that the turtle flung backward with her front flippers. The egg chamber is never in the middle of this high mound—it is located just in front of it (on the inland side).
+                  <strong style={{ color: '#e6f1ff' }}>1. Locate the Primary Sand Mound:</strong> Identify the large, heavy mound of dry sand that the turtle flung backward with her front flippers. The egg chamber is never in the middle of this high mound—it is typically located just in front of it (on the inland side), though this area may be obscured if the turtle doubled back over her crawl.
                 </div>
                 <div>
-                  <strong style={{ color: '#e6f1ff' }}>2. Pinpoint the Transition Zone:</strong> Stand at the inland/leading edge of that thrown sand mound, right where it transitions into the shallower depression of the body pit. The egg chamber is typically centered horizontally between her final incoming and outgoing flipper marks in this specific zone.
+                  <strong style={{ color: '#e6f1ff' }}>2. Pinpoint the Transition Zone:</strong> Stand at the inland/leading edge of that thrown sand mound, right where it transitions into the shallow depression of the body pit. The egg chamber is often centered horizontally in this area, but pay attention to changes in direction the turtle made after this point which may result in the chamber skewing toward the outer edge of the crawl.
                 </div>
                 <div>
-                  <strong style={{ color: '#e6f1ff' }}>3. Probe GENTLY from the Edge Inward:</strong> Using a standard, blunt-tipped nest probe, push vertically into the sand every few inches, moving from the known hard, undisturbed beach sand toward the soft, disturbed area. Listen and feel for a sudden change in resistance: the probe will drop easily through loose sand or into the top 1-2 inches of an air pocket when you hit the chamber. Stop immediately when the resistance drops to avoid puncturing eggs.
+                  <strong style={{ color: '#e6f1ff' }}>3. Probe GENTLY from the Transition Zone inward:</strong> Using a standard, blunt-tipped nest probe, push vertically into the sand every few inches, moving from the known hard, undisturbed beach sand toward the soft, disturbed area. Listen and feel for a sudden change in resistance: the probe will drop easily through loose sand or into the top 1-2 inches of an air pocket when you hit the chamber. Stop immediately when the resistance drops to avoid puncturing eggs.
                 </div>
                 <div style={{ borderTop: '1px solid rgba(244, 162, 97, 0.2)', paddingTop: '8px', fontStyle: 'italic', fontSize: '0.8rem', color: '#f4a261' }}>
-                  <strong>Pro Tip for Volunteers:</strong> Loggerhead egg chambers are usually shaped like a lightbulb or flask and sit roughly 10 to 18 inches (25–45 cm) below the surface of the undisturbed sand layer. If you are probing deeper than that without a change in resistance, you are likely off-center.
+                  <strong>Note:</strong> Loggerhead egg chambers are usually shaped like a lightbulb or flask and sit roughly 10 to 18 inches (25–45 cm) below the surface of the undisturbed sand layer. If you are probing deeper than that without a change in resistance, you are likely off-center.
                 </div>
               </div>
             </div>
