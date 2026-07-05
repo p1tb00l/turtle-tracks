@@ -582,14 +582,39 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
               <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff' }}>Step 3: Nest Documentation</h3>
 
               {/* Coordinates check */}
-              <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <strong style={{ fontSize: '0.8rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>Nest Coordinates</strong>
-                  <span style={{ fontSize: '0.95rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
-                    {coordinates ? `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}` : 'Acquiring GPS fix...'}
-                  </span>
+              <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <strong style={{ fontSize: '0.8rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>Nest Coordinates</strong>
+                    <span style={{ fontSize: '0.95rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
+                      {coordinates ? `${Number(coordinates.lat).toFixed(6)}, ${Number(coordinates.lng).toFixed(6)}` : 'Acquiring GPS fix...'}
+                    </span>
+                  </div>
+                  <MapPin className="text-[#64ffda]" />
                 </div>
-                <MapPin className="text-[#64ffda]" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '8px', marginTop: '4px' }}>
+                  <button
+                    onClick={() => {
+                      const curLat = coordinates ? coordinates.lat : 32.1220;
+                      const curLng = coordinates ? coordinates.lng : -80.8650;
+                      const latStr = window.prompt("Enter custom Latitude (decimal format, e.g., 32.123456):", curLat);
+                      if (latStr === null) return;
+                      const lngStr = window.prompt("Enter custom Longitude (decimal format, e.g., -80.867890):", curLng);
+                      if (lngStr === null) return;
+                      const lat = parseFloat(latStr);
+                      const lng = parseFloat(lngStr);
+                      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                        alert("Invalid coordinates format. Please enter valid decimal degrees.");
+                        return;
+                      }
+                      setCoordinates({ lat, lng });
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', width: 'fit-content', alignSelf: 'flex-start' }}
+                  >
+                    ✏️ Override GPS Coordinates
+                  </button>
+                </div>
               </div>
 
               {/* Nest Location Landmark Description Box */}
@@ -721,19 +746,43 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                     />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>
-                    <div>
-                      <strong style={{ fontSize: '0.75rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>Relocation Coordinates</strong>
-                      <span style={{ fontSize: '0.85rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
-                        {relocationCoords ? `${relocationCoords.lat.toFixed(6)}, ${relocationCoords.lng.toFixed(6)}` : 'Capture at relocated nest site'}
-                      </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <strong style={{ fontSize: '0.75rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>Relocation Coordinates</strong>
+                        <span style={{ fontSize: '0.85rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
+                          {relocationCoords ? `${Number(relocationCoords.lat).toFixed(6)}, ${Number(relocationCoords.lng).toFixed(6)}` : 'Capture at relocated nest site'}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={handleCaptureRelocationCoords}
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                      >
+                        Log GPS Coordinates
+                      </button>
                     </div>
-                    <button 
-                      onClick={handleCaptureRelocationCoords}
+                    
+                    <button
+                      onClick={() => {
+                        const curLat = relocationCoords ? relocationCoords.lat : 32.1220;
+                        const curLng = relocationCoords ? relocationCoords.lng : -80.8650;
+                        const latStr = window.prompt("Enter custom Relocated Latitude (decimal format, e.g., 32.123456):", curLat);
+                        if (latStr === null) return;
+                        const lngStr = window.prompt("Enter custom Relocated Longitude (decimal format, e.g., -80.867890):", curLng);
+                        if (lngStr === null) return;
+                        const lat = parseFloat(latStr);
+                        const lng = parseFloat(lngStr);
+                        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                          alert("Invalid coordinates format. Please enter valid decimal degrees.");
+                          return;
+                        }
+                        setRelocationCoords({ lat, lng });
+                      }}
                       className="btn btn-secondary"
-                      style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                      style={{ padding: '6px 12px', fontSize: '0.75rem', alignSelf: 'flex-start', border: '1px dashed rgba(255, 122, 89, 0.4)', color: '#ff7a59' }}
                     >
-                      Log Coordinates
+                      ✏️ Override Relocation Coordinates
                     </button>
                   </div>
                 </div>
@@ -795,14 +844,39 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
               <h3 style={{ fontSize: '1.1rem', color: '#e6f1ff' }}>Step 3: False Crawl Documentation</h3>
 
               {/* Coordinates check */}
-              <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <strong style={{ fontSize: '0.8rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>GPS Coordinates</strong>
-                  <span style={{ fontSize: '0.95rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
-                    {coordinates ? `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}` : 'Acquiring GPS fix...'}
-                  </span>
+              <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <strong style={{ fontSize: '0.8rem', color: '#8892b0', textTransform: 'uppercase', display: 'block' }}>GPS Coordinates</strong>
+                    <span style={{ fontSize: '0.95rem', color: '#e6f1ff', fontFamily: 'monospace' }}>
+                      {coordinates ? `${Number(coordinates.lat).toFixed(6)}, ${Number(coordinates.lng).toFixed(6)}` : 'Acquiring GPS fix...'}
+                    </span>
+                  </div>
+                  <MapPin className="text-[#f4a261]" />
                 </div>
-                <MapPin className="text-[#f4a261]" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '8px', marginTop: '4px' }}>
+                  <button
+                    onClick={() => {
+                      const curLat = coordinates ? coordinates.lat : 32.1220;
+                      const curLng = coordinates ? coordinates.lng : -80.8650;
+                      const latStr = window.prompt("Enter custom Latitude (decimal format, e.g., 32.123456):", curLat);
+                      if (latStr === null) return;
+                      const lngStr = window.prompt("Enter custom Longitude (decimal format, e.g., -80.867890):", curLng);
+                      if (lngStr === null) return;
+                      const lat = parseFloat(latStr);
+                      const lng = parseFloat(lngStr);
+                      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                        alert("Invalid coordinates format. Please enter valid decimal degrees.");
+                        return;
+                      }
+                      setCoordinates({ lat, lng });
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', width: 'fit-content', alignSelf: 'flex-start' }}
+                  >
+                    ✏️ Override GPS Coordinates
+                  </button>
+                </div>
               </div>
 
               {/* Nest Location Landmark Description Box */}
