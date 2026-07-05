@@ -241,19 +241,23 @@ export default function Guide() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                   <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 2:</span>
-                  <span>Drive three PVC poles deep into the sand, forming an equilateral triangle centered around the egg chamber.</span>
+                  <span>Arrange three lengths of underground cage into an equilateral triangle centered around the egg chamber, being careful to orient the cage tines vertically and outside of the nest chamber. Press or hammer the cage into the ground ensuring tight corners between the pieces.</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                   <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 3:</span>
-                  <span>Secure the DNR Warning Sign on the seaward-facing front PVC pole. Write the nest number clearly and legibly in waterproof marker.</span>
+                  <span>Drive three PVC or wood poles deep into the sand at the corners of the triangle formed in Step 2.</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                   <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 4:</span>
-                  <span>Wrap bright red boundary tape around the three PVC poles to alert beach walkers and vehicles.</span>
+                  <span>Secure the DNR Warning Sign on the seaward-facing front pole. Write the nest number clearly and legibly in thick waterproof marker.</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 5 (Optional Final Step):</span>
-                  <span>Mount the metal cage over the mesh screen, anchoring it between the PVC poles. Wire it securely to the poles with tight corners to prevent predators from prying it up.</span>
+                  <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 5:</span>
+                  <span>Wrap bright boundary tape around the three PVC poles to alert beach walkers and vehicles.</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <span style={{ color: '#64ffda', fontWeight: 'bold' }}>Step 6 (Optional):</span>
+                  <span>For nests that are prone to predation, mount a metal above-ground cage over the mesh screen, anchoring it between the poles. Wire it securely with tight corners to prevent predators from prying it up.</span>
                 </div>
               </div>
             </div>
