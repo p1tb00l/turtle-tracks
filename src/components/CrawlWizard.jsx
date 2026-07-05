@@ -124,6 +124,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           timestamp: new Date().toISOString(),
           coordinates: finalCoords,
           nestLocationLandmark,
+          nestNumber,
           photos,
           tidelineRelation,
           inSitu,

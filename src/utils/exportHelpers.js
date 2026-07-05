@@ -59,8 +59,12 @@ export function generateTextSummary(session) {
 
   if (session.crawls && session.crawls.length > 0) {
     text += `DETAILED CRAWL LOGS:\n\n`;
-    session.crawls.forEach((crawl, idx) => {
-      text += `CRAWL #${idx + 1} - [${crawl.type === 'nest' ? 'NESTING CRAWL' : 'FALSE CRAWL'}]\n`;
+    session.crawls.forEach((crawl) => {
+      const isNest = crawl.type === 'nest';
+      const crawlIdentifier = isNest 
+        ? (crawl.nestNumber ? `Nest #${crawl.nestNumber}` : `Nest (Unnumbered)`) 
+        : (crawl.falseCrawlNumber ? `False Crawl #${crawl.falseCrawlNumber}` : `False Crawl (Unnumbered)`);
+      text += `[${crawlIdentifier}]\n`;
       text += `Time Logged: ${new Date(crawl.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
       text += `GPS Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
       text += `Relative to Tideline: ${crawl.tidelineRelation || 'Not recorded'}\n`;
@@ -124,10 +128,12 @@ export function downloadFile(content, fileName, contentType) {
 export function exportToCSV(session) {
   let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Flipper/PIT Tag,False Crawl Factors,Is Possible Nest,Notes\n';
   
-  if (session.crawls) {
     session.crawls.forEach((c, idx) => {
+      const crawlIdentifier = c.type === 'nest' 
+        ? (c.nestNumber ? `Nest #${c.nestNumber}` : `Nest (Unnumbered)`) 
+        : (c.falseCrawlNumber ? `FC #${c.falseCrawlNumber}` : `FC (Unnumbered)`);
       const row = [
-        idx + 1,
+        `"${crawlIdentifier}"`,
         c.type === 'nest' ? 'Nest' : 'False Crawl',
         new Date(c.timestamp).toISOString(),
         c.coordinates?.lat || '',
@@ -146,7 +152,6 @@ export function exportToCSV(session) {
       ];
       csv += row.join(',') + '\n';
     });
-  }
   
   return csv;
 }
@@ -188,7 +193,11 @@ export function exportToHTML(session) {
       crawlsHtml += `
         <div class="crawl-card ${isNest ? 'nest-card' : 'false-crawl-card'}">
           <div class="crawl-header">
-            <h3>Crawl #${idx + 1} &mdash; ${isNest ? 'Confirmed Nest' : 'False Crawl'}</h3>
+            <h3>
+              ${isNest 
+                ? `Nest ${crawl.nestNumber ? `#${crawl.nestNumber}` : '(Unnumbered)'}` 
+                : `False Crawl ${crawl.falseCrawlNumber ? `#${crawl.falseCrawlNumber}` : '(Unnumbered)'}`}
+            </h3>
             <span class="badge ${isNest ? 'badge-nest' : 'badge-false'}">
               ${isNest ? 'Nest' : 'False Crawl'}
             </span>
@@ -527,8 +536,8 @@ export function generateFBPost(session) {
   // Display only if there are nests
   if (nests.length > 0) {
     text += `\n`;
-    nests.forEach((crawl, idx) => {
-      text += `**Nest #${idx + 1}**\n`;
+    nests.forEach((crawl) => {
+      text += `**Nest ${crawl.nestNumber ? `#${crawl.nestNumber}` : '(Unnumbered)'}**\n`;
       text += `- Original Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
       if (crawl.nestLocationLandmark) {
         text += `- Nest Location: ${crawl.nestLocationLandmark}\n`;
@@ -562,8 +571,8 @@ export function generateFBPost(session) {
   // Display only if there are false crawls or possible nests
   if (falseCrawls.length > 0) {
     text += `\n`;
-    falseCrawls.forEach((crawl, idx) => {
-      text += `**False Crawl #${idx + 1}**\n`;
+    falseCrawls.forEach((crawl) => {
+      text += `**False Crawl ${crawl.falseCrawlNumber ? `#${crawl.falseCrawlNumber}` : '(Unnumbered)'}**\n`;
       text += `- Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
       if (crawl.nestLocationLandmark) {
         text += `- False Crawl Location: ${crawl.nestLocationLandmark}\n`;

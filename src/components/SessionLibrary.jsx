@@ -814,7 +814,9 @@ export default function SessionLibrary({ sessions, setSessions }) {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <strong style={{ color: '#e6f1ff', fontSize: '0.9rem' }}>
-                        Crawl #{idx + 1} &bull; {isNest ? 'Nest' : `False Crawl${crawl.falseCrawlNumber ? ` #${crawl.falseCrawlNumber}` : ''}`}
+                        {isNest 
+                          ? `Nest ${crawl.nestNumber ? `#${crawl.nestNumber}` : '(Unnumbered)'}` 
+                          : `False Crawl ${crawl.falseCrawlNumber ? `#${crawl.falseCrawlNumber}` : '(Unnumbered)'}`}
                       </strong>
                       <span style={{ fontSize: '0.7rem', color: '#8892b0' }}>
                         {new Date(crawl.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
