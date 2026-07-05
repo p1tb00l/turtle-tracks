@@ -250,20 +250,75 @@ export default function SessionLibrary({ sessions, setSessions }) {
     e.target.value = ''; // Reset file input
   };
 
-  const handleDownloadAllImages = (session) => {
+  // Helper function to draw watermark on the photo canvas before download
+  const watermarkPhoto = (photo, extraInfo = '') => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw the original photo
+        ctx.drawImage(img, 0, 0);
+        
+        // Setup banner parameters
+        const bannerHeight = Math.max(40, Math.round(canvas.height * 0.12));
+        ctx.fillStyle = 'rgba(2, 12, 27, 0.75)';
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+        
+        // Draw texts
+        const fontSize = Math.max(12, Math.round(bannerHeight * 0.22));
+        ctx.font = `600 ${fontSize}px sans-serif`;
+        ctx.fillStyle = '#64ffda';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        
+        // Line 1: Tag
+        const tagText = `${photo.tag || 'Field Log'}`.toUpperCase();
+        ctx.fillText(tagText, 15, canvas.height - (bannerHeight * 0.65));
+        
+        // Line 2: GPS/Timestamp/Comments
+        ctx.font = `${Math.max(10, Math.round(bannerHeight * 0.18))}px sans-serif`;
+        ctx.fillStyle = '#8892b0';
+        
+        const parts = [];
+        if (extraInfo) parts.push(extraInfo);
+        if (photo.notes) parts.push(`Notes: ${photo.notes}`);
+        
+        const detailText = parts.join(' | ');
+        ctx.fillText(detailText, 15, canvas.height - (bannerHeight * 0.3));
+        
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.onerror = () => {
+        resolve(photo.dataUrl); // Fallback to raw if load fails
+      };
+      img.src = photo.dataUrl;
+    });
+  };
+
+  const handleDownloadAllImages = async (session) => {
     // Collect all photos from crawls and overall session photos
     const allPhotos = [];
     (session.photos || []).forEach((photo, pIdx) => {
+      const info = `Session: ${session.locationName || 'Daufuskie'} (${new Date(session.startTime).toLocaleDateString()})`;
       allPhotos.push({
-        dataUrl: photo.dataUrl,
-        fileName: `Session_${session.id}_General_${pIdx + 1}_${photo.id}.png`
+        photo: photo,
+        info: info,
+        fileName: `Session_${session.id}_General_${pIdx + 1}_${photo.id}.jpg`
       });
     });
     (session.crawls || []).forEach((crawl, cIdx) => {
+      const isNest = crawl.type === 'nest';
+      const gpsStr = crawl.coordinates ? `GPS: ${crawl.coordinates.lat.toFixed(6)}, ${crawl.coordinates.lng.toFixed(6)}` : '';
       (crawl.photos || []).forEach((photo, pIdx) => {
         allPhotos.push({
-          dataUrl: photo.dataUrl,
-          fileName: `Session_${session.id}_Crawl_${cIdx + 1}_${photo.tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id}.png`
+          photo: photo,
+          info: gpsStr,
+          fileName: `Session_${session.id}_Crawl_${cIdx + 1}_${photo.tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id}.jpg`
         });
       });
     });
@@ -273,23 +328,32 @@ export default function SessionLibrary({ sessions, setSessions }) {
       return;
     }
 
-    // Download each file sequentially
-    allPhotos.forEach((photo, index) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = photo.dataUrl;
-        link.download = photo.fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, index * 300); // 300ms delay to prevent browser download blocking
-    });
+    // Download each file sequentially with watermarks
+    for (let index = 0; index < allPhotos.length; index++) {
+      const item = allPhotos[index];
+      const watermarkedUrl = await watermarkPhoto(item.photo, item.info);
+      
+      await new Promise((res) => {
+        setTimeout(() => {
+          const link = document.createElement('a');
+          link.href = watermarkedUrl;
+          link.download = item.fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          res();
+        }, 300); // 300ms delay to prevent browser download blocking
+      });
+    }
   };
 
-  const handleDownloadSingleImage = (photo, tag) => {
+  const handleDownloadSingleImage = async (photo, tag) => {
+    const info = selectedSession ? `Session: ${selectedSession.locationName || 'Daufuskie'} (${new Date(selectedSession.startTime).toLocaleDateString()})` : '';
+    const watermarkedUrl = await watermarkPhoto(photo, info);
+    
     const link = document.createElement('a');
-    link.href = photo.dataUrl;
-    link.download = `${tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id || Date.now()}.png`;
+    link.href = watermarkedUrl;
+    link.download = `${tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id || Date.now()}.jpg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
