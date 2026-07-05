@@ -128,9 +128,6 @@ export default function Guide() {
                 <li><strong>Tail Drag:</strong> Very faint, straight, or completely absent.</li>
                 <li><strong>Average Width:</strong> Very narrow, 50 to 60 centimeters.</li>
               </ul>
-              <div style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(48, 60, 85, 0.4)', maxWidth: '380px' }}>
-                <img src="/kemps_ridley_tracks.png" alt="Kemp's Ridley Tracks" style={{ width: '100%', height: 'auto', display: 'block' }} />
-              </div>
             </div>
 
             {/* False Crawl */}
