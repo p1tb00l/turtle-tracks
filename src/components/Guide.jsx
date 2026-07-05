@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { BookOpen, ShieldAlert, Award, HelpingHand, Compass, Phone } from 'lucide-react';
 
 export default function Guide() {
-  const [activeSection, setActiveSection] = useState('probing');
+  const [activeSection, setActiveSection] = useState('nest_chamber');
 
   const SECTIONS = [
-    { id: 'probing', label: 'Nest Probing Guide', icon: HelpingHand },
     { id: 'nest_chamber', label: 'Locating Nest Chamber', icon: Compass },
     { id: 'tracks', label: 'Track Identification', icon: BookOpen },
     { id: 'species', label: 'Species Identification', icon: Award },
@@ -56,32 +55,6 @@ export default function Guide() {
 
       {/* Content */}
       <div className="glass-panel" style={{ padding: '20px' }}>
-        
-        {/* 1. NEST PROBING GUIDE */}
-        {activeSection === 'probing' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ color: '#64ffda', borderBottom: '1px solid rgba(100, 255, 218, 0.2)', paddingBottom: '8px' }}>Probing Technique</h3>
-            
-            <div style={{ backgroundColor: 'rgba(255, 122, 89, 0.1)', borderLeft: '4px solid #ff7a59', padding: '12px', borderRadius: '4px', fontSize: '0.85rem' }}>
-              <strong>CRITICAL RULE:</strong> Always probe using the weight of your body and your <strong>legs</strong>. Never use your arms/wrists to push the probe into the sand, as you may crush the eggs or misread the resistance change.
-            </div>
-
-            <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem', color: '#8892b0' }}>
-              <li>
-                <strong style={{ color: '#e6f1ff' }}>Identify Body Pit:</strong> Look for areas with heavily thrown/disturbed sand. The chamber is typically located near the apex of the crawl, directly under the thickest mound of sand.
-              </li>
-              <li>
-                <strong style={{ color: '#e6f1ff' }}>Insert Probe:</strong> Push the probe vertically down into the sand. You should feel firm, packed sand resistance.
-              </li>
-              <li>
-                <strong style={{ color: '#e6f1ff' }}>Detect Soft Cavity:</strong> Walk around the crawl in a grid. When the probe sinks suddenly with minimal resistance (the "soft spot" or collapse feeling), you have pierced the top of the egg chamber.
-              </li>
-              <li>
-                <strong style={{ color: '#e6f1ff' }}>Hand-Dig Only:</strong> Mark the exact spot. Carefully scoop the sand using your hands. <strong>Do not use shovels, trowels, or probes anymore.</strong> Dig straight down until you touch the top eggs.
-              </li>
-            </ol>
-          </div>
-        )}
 
         {/* 2. LOCATING NEST CHAMBER */}
         {activeSection === 'nest_chamber' && (
