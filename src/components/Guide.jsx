@@ -275,17 +275,13 @@ export default function Guide() {
 
             <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
               <div>
-                <strong style={{ color: '#e6f1ff' }}>Egg Extraction:</strong> Take exactly 1 egg from the chamber. If you accidentally broke or cracked an egg during probing/digging, you <strong>MUST</strong> use that broken egg shell.
+                <strong style={{ color: '#e6f1ff' }}>Egg Extraction:</strong> Take exactly 1 egg from the chamber. If you accidentally broke an egg during probing/digging, you <strong>MUST</strong> use that broken egg shell.
               </div>
               <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>
-                <strong style={{ color: '#e6f1ff' }}>Preparation:</strong> Squeeze out any egg white/yolk into the sand. Place the remaining outer eggshell membrane directly into the research preservative vial.
+                <strong style={{ color: '#e6f1ff' }}>Preparation:</strong> Create a hole in the egg if necessary, and squeeze out any egg white/yolk either into the ocean or into the sand away from all nests. Place the remaining outer eggshell membrane directly into the research preservative vial.
               </div>
               <div style={{ borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>
-                <strong style={{ color: '#e6f1ff' }}>Labeling:</strong> Using a fine-point waterproof marker, write the <strong>Nest Number</strong> and **Date** on:
-                <ul style={{ paddingLeft: '20px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px', color: '#8892b0' }}>
-                  <li>The side label of the vial.</li>
-                  <li>The top cap of the vial.</li>
-                </ul>
+                <strong style={{ color: '#e6f1ff' }}>Labeling:</strong> Using a fine-point waterproof marker, write the year, "DAU", and nest number on both the side and top of the vial in the syntax YY-DAU-## (e.g. 26-DAU-99).
               </div>
             </div>
           </div>
