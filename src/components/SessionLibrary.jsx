@@ -313,12 +313,16 @@ export default function SessionLibrary({ sessions, setSessions }) {
     });
     (session.crawls || []).forEach((crawl, cIdx) => {
       const isNest = crawl.type === 'nest';
+      const crawlLabel = isNest 
+        ? (crawl.nestNumber ? `Nest #${crawl.nestNumber}` : `Nest (Unnumbered)`) 
+        : (crawl.falseCrawlNumber ? `FC #${crawl.falseCrawlNumber}` : `FC (Unnumbered)`);
       const gpsStr = crawl.coordinates ? `GPS: ${crawl.coordinates.lat.toFixed(6)}, ${crawl.coordinates.lng.toFixed(6)}` : '';
+      const info = `${crawlLabel} | ${gpsStr}`;
       (crawl.photos || []).forEach((photo, pIdx) => {
         allPhotos.push({
           photo: photo,
-          info: gpsStr,
-          fileName: `Session_${session.id}_Crawl_${cIdx + 1}_${photo.tag.replace(/[^a-zA-Z0-9]/g, '_')}_${photo.id}.jpg`
+          info: info,
+          fileName: `Session_${session.id}_${crawlLabel.replace(/[^a-zA-Z0-9]/g, '_')}_Photo_${pIdx + 1}_${photo.id}.jpg`
         });
       });
     });
@@ -348,7 +352,22 @@ export default function SessionLibrary({ sessions, setSessions }) {
   };
 
   const handleDownloadSingleImage = async (photo, tag) => {
-    const info = selectedSession ? `Session: ${selectedSession.locationName || 'Daufuskie'} (${new Date(selectedSession.startTime).toLocaleDateString()})` : '';
+    let info = selectedSession ? `Session: ${selectedSession.locationName || 'Daufuskie'} (${new Date(selectedSession.startTime).toLocaleDateString()})` : '';
+    
+    // Find if this photo is associated with any crawl in the selected session
+    if (selectedSession && selectedSession.crawls && selectedPreviewPhoto) {
+      const crawlIdx = selectedPreviewPhoto.crawlIndex;
+      if (crawlIdx !== undefined && crawlIdx !== null && selectedSession.crawls[crawlIdx]) {
+        const crawl = selectedSession.crawls[crawlIdx];
+        const isNest = crawl.type === 'nest';
+        const crawlLabel = isNest 
+          ? (crawl.nestNumber ? `Nest #${crawl.nestNumber}` : `Nest (Unnumbered)`) 
+          : (crawl.falseCrawlNumber ? `FC #${crawl.falseCrawlNumber}` : `FC (Unnumbered)`);
+        const gpsStr = crawl.coordinates ? `GPS: ${crawl.coordinates.lat.toFixed(6)}, ${crawl.coordinates.lng.toFixed(6)}` : '';
+        info = `${crawlLabel} | ${gpsStr}`;
+      }
+    }
+
     const watermarkedUrl = await watermarkPhoto(photo, info);
     
     const link = document.createElement('a');
