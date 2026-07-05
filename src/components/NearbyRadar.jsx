@@ -82,19 +82,25 @@ const parseGPX = (gpxText) => {
     let subtype = 'in_situ';
     const textToSearch = `${name} ${desc}`.toLowerCase();
 
-    if (textToSearch.includes('false') || textToSearch.includes('u-turn')) {
+    if (textToSearch.includes('false crawl')) {
       subtype = 'false_crawl';
-    } else if (textToSearch.includes('possible') || textToSearch.includes('suspected')) {
+    } else if (textToSearch.includes('possible nest')) {
       subtype = 'possible_nest';
-    } else if (textToSearch.includes('original') || textToSearch.includes('orig')) {
+    } else if (textToSearch.includes('nest') && (textToSearch.includes('original') || textToSearch.includes('orig'))) {
       subtype = 'relocated_original';
     } else if (
-      textToSearch.includes('final') || 
-      textToSearch.includes('final site') || 
+      textToSearch.includes('nest') || 
       textToSearch.includes('relocated') || 
       textToSearch.includes('reloc')
     ) {
-      subtype = 'relocated_final';
+      subtype = 'in_situ';
+    } else {
+      // Fallback fallback checks
+      if (textToSearch.includes('false') || textToSearch.includes('u-turn')) {
+        subtype = 'false_crawl';
+      } else if (textToSearch.includes('possible') || textToSearch.includes('suspected')) {
+        subtype = 'possible_nest';
+      }
     }
 
     parsedWaypoints.push({
@@ -124,7 +130,7 @@ export default function NearbyRadar({ userLocation }) {
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const currentWaypointIdsRef = useRef('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'nests', 'crawls', 'possible'
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'nests', 'relocated', 'crawls', 'possible'
   const [mapStyle, setMapStyle] = useState(() => {
     return localStorage.getItem('turtletracks_map_style') || 'satellite';
   });
@@ -165,7 +171,9 @@ export default function NearbyRadar({ userLocation }) {
     // Apply category filter matching the logic in GPXDatabase
     const filtered = waypoints.filter(wp => {
       if (activeFilter === 'nests') {
-        return wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+        return wp.subtype === 'in_situ' || wp.subtype === 'relocated_final';
+      } else if (activeFilter === 'relocated') {
+        return wp.subtype === 'relocated_original';
       } else if (activeFilter === 'crawls') {
         return wp.subtype === 'false_crawl';
       } else if (activeFilter === 'possible') {
@@ -392,6 +400,7 @@ export default function NearbyRadar({ userLocation }) {
           {[
             { id: 'all', label: 'All' },
             { id: 'nests', label: 'Confirmed Nests' },
+            { id: 'relocated', label: 'Relocated' },
             { id: 'crawls', label: 'False Crawls' },
             { id: 'possible', label: 'Possible Nests' }
           ].map(chip => {

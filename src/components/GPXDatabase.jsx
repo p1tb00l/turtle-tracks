@@ -82,19 +82,25 @@ const parseGPX = (gpxText) => {
     let subtype = 'in_situ';
     const textToSearch = `${name} ${desc}`.toLowerCase();
 
-    if (textToSearch.includes('false') || textToSearch.includes('u-turn')) {
+    if (textToSearch.includes('false crawl')) {
       subtype = 'false_crawl';
-    } else if (textToSearch.includes('possible') || textToSearch.includes('suspected')) {
+    } else if (textToSearch.includes('possible nest')) {
       subtype = 'possible_nest';
-    } else if (textToSearch.includes('original') || textToSearch.includes('orig')) {
+    } else if (textToSearch.includes('nest') && (textToSearch.includes('original') || textToSearch.includes('orig'))) {
       subtype = 'relocated_original';
     } else if (
-      textToSearch.includes('final') || 
-      textToSearch.includes('final site') || 
+      textToSearch.includes('nest') || 
       textToSearch.includes('relocated') || 
       textToSearch.includes('reloc')
     ) {
-      subtype = 'relocated_final';
+      subtype = 'in_situ';
+    } else {
+      // Fallback checks
+      if (textToSearch.includes('false') || textToSearch.includes('u-turn')) {
+        subtype = 'false_crawl';
+      } else if (textToSearch.includes('possible') || textToSearch.includes('suspected')) {
+        subtype = 'possible_nest';
+      }
     }
 
     parsedWaypoints.push({
@@ -185,9 +191,11 @@ export default function GPXDatabase({ userLocation }) {
     return waypoints.filter(wp => {
       // 1. Filter by category
       if (activeFilter === 'nests') {
-        if (wp.subtype !== 'in_situ' && wp.subtype !== 'relocated_final' && wp.subtype !== 'relocated_original') {
+        if (wp.subtype !== 'in_situ' && wp.subtype !== 'relocated_final') {
           return false;
         }
+      } else if (activeFilter === 'relocated') {
+        if (wp.subtype !== 'relocated_original') return false;
       } else if (activeFilter === 'crawls') {
         if (wp.subtype !== 'false_crawl') return false;
       } else if (activeFilter === 'possible') {
@@ -648,6 +656,7 @@ export default function GPXDatabase({ userLocation }) {
             {[
               { id: 'all', label: 'All' },
               { id: 'nests', label: 'Confirmed Nests' },
+              { id: 'relocated', label: 'Relocated' },
               { id: 'crawls', label: 'False Crawls' },
               { id: 'possible', label: 'Possible Nests' }
             ].map(chip => {
