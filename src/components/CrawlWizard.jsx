@@ -29,6 +29,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [nestCardDone, setNestCardDone] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
   const [nestLocationLandmark, setNestLocationLandmark] = useState('');
+  const [relocationLandmark, setRelocationLandmark] = useState('');
 
   // Turtle Encounter Form State
   const [tagsFound, setTagsFound] = useState(false);
@@ -131,6 +132,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
           dnaVialNumber,
           equipmentInstalled,
           relocationCoords: !inSitu ? relocationCoords : null,
+          relocationLandmark: !inSitu ? relocationLandmark : '',
           totalEggCount: !inSitu ? totalEggCount : null,
           relocatedEggCount: !inSitu ? relocatedEggCount : null,
           nestCardDone,
@@ -704,6 +706,19 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
                         style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                     </div>
+                  </div>
+
+                  {/* Relocation Landmarks Description Box */}
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Relocated Nest Location (Landmarks, Beach Markers)</label>
+                    <input 
+                      type="text" 
+                      value={relocationLandmark}
+                      onChange={(e) => setRelocationLandmark(e.target.value)}
+                      placeholder="e.g. 50 ft North of Marker 15, high dune"
+                      className="form-input"
+                      style={{ fontSize: '0.85rem' }}
+                    />
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(48, 60, 85, 0.4)', paddingTop: '10px' }}>

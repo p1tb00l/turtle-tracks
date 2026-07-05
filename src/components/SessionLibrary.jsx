@@ -888,7 +888,10 @@ export default function SessionLibrary({ sessions, setSessions }) {
                         return null;
                       })()}
                       {crawl.nestLocationLandmark && (
-                        <div><strong>Nest Location:</strong> {crawl.nestLocationLandmark}</div>
+                        <div><strong>Original Nest Location:</strong> {crawl.nestLocationLandmark}</div>
+                      )}
+                      {isNest && !crawl.inSitu && crawl.relocationLandmark && (
+                        <div><strong>Relocated Nest Location:</strong> {crawl.relocationLandmark}</div>
                       )}
                       <div><strong>Position:</strong> {crawl.tidelineRelation}</div>
                       {isNest ? (

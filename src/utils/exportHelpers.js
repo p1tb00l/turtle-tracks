@@ -70,11 +70,17 @@ export function generateTextSummary(session) {
       text += `Relative to Tideline: ${crawl.tidelineRelation || 'Not recorded'}\n`;
       
       if (crawl.type === 'nest') {
+        if (crawl.nestLocationLandmark) {
+          text += `Original Nest Location: ${crawl.nestLocationLandmark}\n`;
+        }
         if (!crawl.inSitu) {
           // Relocated nests have both Original and Relocation GPS
           text = text.replace(`GPS Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`, '');
           text += `Original GPS Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
           text += `Relocated GPS Coordinates: ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}\n`;
+          if (crawl.relocationLandmark) {
+            text += `Relocated Nest Location: ${crawl.relocationLandmark}\n`;
+          }
         }
         text += `Is Nest In Situ?: ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}\n`;
         if (!crawl.inSitu) {
@@ -126,7 +132,7 @@ export function downloadFile(content, fileName, contentType) {
  * Exports session data to a CSV string.
  */
 export function exportToCSV(session) {
-  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Flipper/PIT Tag,False Crawl Factors,Is Possible Nest,Notes\n';
+  let csv = 'Crawl Number,Type,Timestamp,Latitude,Longitude,Original Nest Location,Relocated Nest Location,Tideline Relation,In Situ,Relocation Lat,Relocation Lng,Total Eggs,Relocated Eggs,DNA Vial,Flipper/PIT Tag,False Crawl Factors,Is Possible Nest,Notes\n';
   
     session.crawls.forEach((c, idx) => {
       const crawlIdentifier = c.type === 'nest' 
@@ -138,6 +144,8 @@ export function exportToCSV(session) {
         new Date(c.timestamp).toISOString(),
         c.coordinates?.lat || '',
         c.coordinates?.lng || '',
+        `"${(c.nestLocationLandmark || '').replace(/"/g, '""')}"`,
+        `"${(c.relocationLandmark || '').replace(/"/g, '""')}"`,
         `"${c.tidelineRelation || ''}"`,
         c.inSitu !== undefined ? c.inSitu : '',
         c.relocationCoords?.lat || '',
@@ -211,6 +219,12 @@ export function exportToHTML(session) {
             ` : `
               <div><strong>GPS Coordinates:</strong> ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}</div>
             `}
+            ${crawl.nestLocationLandmark ? `
+              <div><strong>Original Nest Location:</strong> ${crawl.nestLocationLandmark}</div>
+            ` : ''}
+            ${isNest && !crawl.inSitu && crawl.relocationLandmark ? `
+              <div><strong>Relocated Nest Location:</strong> ${crawl.relocationLandmark}</div>
+            ` : ''}
             <div><strong>Tideline Position:</strong> ${crawl.tidelineRelation || 'Not Specified'}</div>
             ${isNest ? `
               <div><strong>In Situ:</strong> ${crawl.inSitu ? 'Yes' : 'No (Relocated)'}</div>
@@ -540,7 +554,7 @@ export function generateFBPost(session) {
       text += `**Nest ${crawl.nestNumber ? `#${crawl.nestNumber}` : '(Unnumbered)'}**\n`;
       text += `- Original Coordinates: ${crawl.coordinates?.lat.toFixed(6)}, ${crawl.coordinates?.lng.toFixed(6)}\n`;
       if (crawl.nestLocationLandmark) {
-        text += `- Nest Location: ${crawl.nestLocationLandmark}\n`;
+        text += `- Original Nest Location: ${crawl.nestLocationLandmark}\n`;
       }
       text += `- Position: ${crawl.tidelineRelation || 'Not recorded'}\n`;
 
@@ -554,6 +568,9 @@ export function generateFBPost(session) {
         text += `- In Situ\n`;
       } else {
         text += `- Relocated Coordinates: ${crawl.relocationCoords ? crawl.relocationCoords.lat.toFixed(6) + ', ' + crawl.relocationCoords.lng.toFixed(6) : 'Not recorded'}\n`;
+        if (crawl.relocationLandmark) {
+          text += `- Relocated Nest Location: ${crawl.relocationLandmark}\n`;
+        }
         text += `- Number of Eggs: ${crawl.totalEggCount !== undefined && crawl.totalEggCount !== null ? crawl.totalEggCount : (crawl.eggCount || '0')}\n`;
         text += `- Number of Eggs Relocated: ${crawl.relocatedEggCount !== undefined && crawl.relocatedEggCount !== null ? crawl.relocatedEggCount : '0'}\n`;
       }
