@@ -16,7 +16,7 @@ export default function GPSViewer() {
       localStorage.removeItem('turtletracks_gps_subtab');
       return saved;
     }
-    return 'radar';
+    return 'database';
   });
   const canvasRef = useRef(null);
   const [copied, setCopied] = useState(false);
