@@ -228,6 +228,9 @@ export default function GPXDatabase({ userLocation }) {
         const isNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
         if (!isNest) return false;
 
+        const hasOriginalInTitle = /original/i.test(wp.name);
+        if (hasOriginalInTitle) return false;
+
         const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
         if (isInventoried) return false;
 
