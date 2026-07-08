@@ -136,6 +136,7 @@ export default function NearbyRadar({ userLocation }) {
   });
   const tileLayerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(20);
 
   // Invalidate Leaflet map size on fullscreen toggle
   useEffect(() => {
@@ -194,7 +195,7 @@ export default function NearbyRadar({ userLocation }) {
       return true;
     });
 
-    return filtered
+    const sorted = filtered
       .map(wp => {
         const distanceMeters = calculateDistance(userLocation, { lat: wp.lat, lng: wp.lng });
         return {
@@ -203,9 +204,13 @@ export default function NearbyRadar({ userLocation }) {
           formattedDistance: formatDistance(distanceMeters)
         };
       })
-      .sort((a, b) => a.distanceMeters - b.distanceMeters)
-      .slice(0, 10);
-  }, [waypoints, userLocation, activeFilter]);
+      .sort((a, b) => a.distanceMeters - b.distanceMeters);
+
+    if (displayLimit === 'all') {
+      return sorted;
+    }
+    return sorted.slice(0, Number(displayLimit));
+  }, [waypoints, userLocation, activeFilter, displayLimit]);
 
   // Leaflet map setup (only center when initial mount/switch occurs)
   useEffect(() => {
@@ -478,8 +483,34 @@ export default function NearbyRadar({ userLocation }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
           {viewMode === 'list' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#8892b0', marginBottom: '2px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>10 Closest Nests & Crawls</span>
+              <div style={{ fontSize: '0.78rem', color: '#8892b0', marginBottom: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Show:</span>
+                  <select
+                    value={displayLimit}
+                    onChange={e => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 6px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(2, 12, 27, 0.7)',
+                      color: '#e6f1ff',
+                      border: '1px solid rgba(48, 60, 85, 0.6)',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: '600',
+                      height: '24px'
+                    }}
+                  >
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="all">All</option>
+                  </select>
+                  <span>Closest Nests & Crawls</span>
+                </div>
                 <span>Active Location: {userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</span>
               </div>
               
