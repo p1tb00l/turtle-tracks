@@ -411,41 +411,73 @@ export default function NearbyRadar({ userLocation }) {
         </button>
       </div>
 
-      {/* Filter Chips */}
+      {/* Filter Chips & Display Limit */}
       {!loading && !fetchError && userLocation && (
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'nests', label: 'Confirmed' },
-            { id: 'relocated', label: 'Relocated' },
-            { id: 'crawls', label: 'False Crawls' },
-            { id: 'possible', label: 'Possible' }
-          ].map(chip => {
-            const isActive = activeFilter === chip.id;
-            return (
-              <button
-                key={chip.id}
-                onClick={() => {
-                  setActiveFilter(chip.id);
-                  setHasFitBounds(false); // Reset bounds fit so it refits for filtered items
-                }}
-                style={{
-                  flexShrink: 0,
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  border: `1px solid ${isActive ? '#64ffda' : 'rgba(48, 60, 85, 0.6)'}`,
-                  backgroundColor: isActive ? 'rgba(100, 255, 218, 0.1)' : 'rgba(2, 12, 27, 0.4)',
-                  color: isActive ? '#64ffda' : '#8892b0',
-                  cursor: 'pointer',
-                  fontSize: '0.72rem',
-                  fontWeight: '600',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {chip.label}
-              </button>
-            );
-          })}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Filter Chips */}
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', flex: 1 }}>
+            {[
+              { id: 'all', label: 'All' },
+              { id: 'nests', label: 'Confirmed' },
+              { id: 'relocated', label: 'Relocated' },
+              { id: 'crawls', label: 'False Crawls' },
+              { id: 'possible', label: 'Possible' }
+            ].map(chip => {
+              const isActive = activeFilter === chip.id;
+              return (
+                <button
+                  key={chip.id}
+                  onClick={() => {
+                    setActiveFilter(chip.id);
+                    setHasFitBounds(false); // Reset bounds fit so it refits for filtered items
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    border: `1px solid ${isActive ? '#64ffda' : 'rgba(48, 60, 85, 0.6)'}`,
+                    backgroundColor: isActive ? 'rgba(100, 255, 218, 0.1)' : 'rgba(2, 12, 27, 0.4)',
+                    color: isActive ? '#64ffda' : '#8892b0',
+                    cursor: 'pointer',
+                    fontSize: '0.72rem',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Limit Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, paddingBottom: '4px' }}>
+            <span style={{ fontSize: '0.75rem', color: '#8892b0', fontWeight: '600' }}>Show Limit:</span>
+            <select
+              value={displayLimit}
+              onChange={e => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              style={{
+                fontSize: '0.75rem',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#172a45',
+                color: '#64ffda',
+                border: '1.5px solid #64ffda',
+                cursor: 'pointer',
+                outline: 'none',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: '600',
+                height: '28px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+              }}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="all">All</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -483,34 +515,8 @@ export default function NearbyRadar({ userLocation }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
           {viewMode === 'list' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#8892b0', marginBottom: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Show:</span>
-                  <select
-                    value={displayLimit}
-                    onChange={e => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 6px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(2, 12, 27, 0.7)',
-                      color: '#e6f1ff',
-                      border: '1px solid rgba(48, 60, 85, 0.6)',
-                      cursor: 'pointer',
-                      outline: 'none',
-                      fontFamily: 'Montserrat, sans-serif',
-                      fontWeight: '600',
-                      height: '24px'
-                    }}
-                  >
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="all">All</option>
-                  </select>
-                  <span>Closest Nests & Crawls</span>
-                </div>
+              <div style={{ fontSize: '0.78rem', color: '#8892b0', marginBottom: '2px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Closest Nests & Crawls (Filtered)</span>
                 <span>Active Location: {userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</span>
               </div>
               
