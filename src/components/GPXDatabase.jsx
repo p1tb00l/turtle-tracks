@@ -295,10 +295,17 @@ export default function GPXDatabase({ userLocation }) {
       iconAnchor: [16, 16]
     });
 
+    const isConfirmedNest = selectedWaypoint.subtype === 'in_situ' || selectedWaypoint.subtype === 'relocated_final';
+    let displayLabel = config.label;
+    if (isConfirmedNest) {
+      const hasRelocatedInTitle = /relocated/i.test(selectedWaypoint.name);
+      displayLabel = hasRelocatedInTitle ? 'Relocated Nest' : 'In Situ Nest';
+    }
+
     const popupContent = `
       <div style="color: #0a192f; font-family: sans-serif; font-size: 12px; width: 180px; line-height: 1.4;">
         <h4 style="margin: 0 0 4px 0; color: #111; font-weight: bold; font-size: 13px;">${selectedWaypoint.name}</h4>
-        <strong style="color: ${config.color}; display: block; margin-bottom: 4px; font-size: 11px;">${config.label}</strong>
+        <strong style="color: ${config.color}; display: block; margin-bottom: 4px; font-size: 11px;">${displayLabel}</strong>
         ${selectedWaypoint.desc ? `<div style="margin-top: 4px; color: #555;">${selectedWaypoint.desc}</div>` : ''}
       </div>
     `;
@@ -583,7 +590,13 @@ export default function GPXDatabase({ userLocation }) {
           {/* Details card below the map */}
           {(() => {
             const config = SUBTYPES_CONFIG[selectedWaypoint.subtype] || SUBTYPES_CONFIG.in_situ;
-            
+            const isConfirmedNest = selectedWaypoint.subtype === 'in_situ' || selectedWaypoint.subtype === 'relocated_final';
+            let displayLabel = config.label;
+            if (isConfirmedNest) {
+              const hasRelocatedInTitle = /relocated/i.test(selectedWaypoint.name);
+              displayLabel = hasRelocatedInTitle ? 'Relocated Nest' : 'In Situ Nest';
+            }
+
             // Calculate age for info card details
             const isNest = selectedWaypoint.subtype === 'in_situ' || selectedWaypoint.subtype === 'relocated_final' || selectedWaypoint.subtype === 'relocated_original';
             let ageDays = null;
@@ -602,17 +615,18 @@ export default function GPXDatabase({ userLocation }) {
                 const diffTime = Math.abs(new Date() - nestDate);
                 ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
-                if (ageDays > 65) {
+                if (ageDays >= 65) {
                   ageColor = '#ff7a59'; // Red/Coral
-                } else if (ageDays > 55) {
+                } else if (ageDays >= 55) {
                   ageColor = '#f4a261'; // Orange
-                } else if (ageDays > 45) {
+                } else if (ageDays >= 45) {
                   ageColor = '#fde047'; // Yellow
                 }
               }
             }
 
             const headerBorderColor = ageColor || config.color;
+            const isInventoried = selectedWaypoint.name.toLowerCase().includes('inventoried') || (selectedWaypoint.desc && selectedWaypoint.desc.toLowerCase().includes('inventoried'));
 
             return (
               <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -632,11 +646,19 @@ export default function GPXDatabase({ userLocation }) {
                     {config.symbol}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ fontSize: '1rem', color: ageColor || '#e6f1ff', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                    <strong style={{ 
+                      fontSize: '1rem', 
+                      color: ageColor || '#e6f1ff', 
+                      display: 'block', 
+                      textOverflow: 'ellipsis', 
+                      whiteSpace: 'nowrap', 
+                      overflow: 'hidden',
+                      textDecoration: isInventoried ? 'line-through' : 'none'
+                    }}>
                       {selectedWaypoint.name}{ageDays !== null ? ` (${ageDays}d)` : ''}
                     </strong>
                     <span style={{ fontSize: '0.75rem', color: config.color, fontWeight: '600', textTransform: 'uppercase' }}>
-                      {config.label}
+                      {displayLabel}
                     </span>
                   </div>
                   {selectedDistanceText && (
@@ -664,6 +686,11 @@ export default function GPXDatabase({ userLocation }) {
                   {ageDays !== null && (
                     <div>
                       <strong>Nest Age:</strong> <span style={{ color: ageColor || '#64ffda', fontWeight: 'bold' }}>{ageDays} days</span>
+                    </div>
+                  )}
+                  {isInventoried && (
+                    <div>
+                      <strong>Status:</strong> <span style={{ color: '#ff7a59', fontWeight: 'bold' }}>Inventoried</span>
                     </div>
                   )}
                 </div>
@@ -795,11 +822,11 @@ export default function GPXDatabase({ userLocation }) {
                     ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     ageLabel = ` (${ageDays}d)`;
                     
-                    if (ageDays > 65) {
+                    if (ageDays >= 65) {
                       ageColor = '#ff7a59'; // Red/Coral
-                    } else if (ageDays > 55) {
+                    } else if (ageDays >= 55) {
                       ageColor = '#f4a261'; // Orange
-                    } else if (ageDays > 45) {
+                    } else if (ageDays >= 45) {
                       ageColor = '#fde047'; // Yellow
                     }
                   }

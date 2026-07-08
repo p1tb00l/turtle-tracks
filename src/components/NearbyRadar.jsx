@@ -322,13 +322,52 @@ export default function NearbyRadar({ userLocation }) {
       // Add waypoint markers
       processedWaypoints.forEach((wp) => {
         const config = SUBTYPES_CONFIG[wp.subtype] || SUBTYPES_CONFIG.in_situ;
+
+        const isConfirmedNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final';
+        let displayLabel = config.label;
+        if (isConfirmedNest) {
+          const hasRelocatedInTitle = /relocated/i.test(wp.name);
+          displayLabel = hasRelocatedInTitle ? 'Relocated Nest' : 'In Situ Nest';
+        }
+
+        // Calculate age for popup details
+        const isNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+        let ageDays = null;
+        let ageColor = null;
+        
+        if (isNest) {
+          const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+          let nestDate = null;
+          if (dateMatch) {
+            nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+          } else if (wp.timestamp) {
+            nestDate = new Date(wp.timestamp);
+          }
+          
+          if (nestDate && !isNaN(nestDate.getTime())) {
+            const diffTime = Math.abs(new Date() - nestDate);
+            ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (ageDays >= 65) {
+              ageColor = '#ff7a59'; // Red/Coral
+            } else if (ageDays >= 55) {
+              ageColor = '#f4a261'; // Orange
+            } else if (ageDays >= 45) {
+              ageColor = '#fde047'; // Yellow
+            }
+          }
+        }
+
+        const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
+        const markerColor = ageColor || config.color;
+
         const markerIcon = L.divIcon({
           className: `radar-marker subtype-${wp.subtype}`,
           html: `<div style="
             width: 32px; 
             height: 32px; 
             background-color: ${config.bg}; 
-            border: 2px solid ${config.color}; 
+            border: 2px solid ${markerColor}; 
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -342,9 +381,10 @@ export default function NearbyRadar({ userLocation }) {
 
         const popupContent = `
           <div style="color: #0a192f; font-family: sans-serif; font-size: 12px; width: 180px; line-height: 1.4;">
-            <h4 style="margin: 0 0 4px 0; color: #111; font-weight: bold; font-size: 13px;">${wp.name}</h4>
-            <strong style="color: ${config.color}; display: block; margin-bottom: 4px; font-size: 11px;">${config.label}</strong>
+            <h4 style="margin: 0 0 4px 0; color: #111; font-weight: bold; font-size: 13px; ${isInventoried ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${wp.name}</h4>
+            <strong style="color: ${markerColor}; display: block; margin-bottom: 4px; font-size: 11px;">${displayLabel}${isInventoried ? ' (Inventoried)' : ''}</strong>
             ${wp.desc ? `<div style="margin-top: 4px; color: #555;">${wp.desc}</div>` : ''}
+            ${ageDays !== null ? `<div style="margin-top: 4px; color: ${markerColor}; font-weight: bold;">Age: ${ageDays} days</div>` : ''}
             <div style="margin-top: 6px; border-top: 1px solid #ddd; padding-top: 4px; font-weight: bold;">
               Distance: ${wp.formattedDistance}
             </div>
@@ -522,6 +562,46 @@ export default function NearbyRadar({ userLocation }) {
               
               {processedWaypoints.map((wp) => {
                 const config = SUBTYPES_CONFIG[wp.subtype] || SUBTYPES_CONFIG.in_situ;
+
+                // Parse date and calculate age if it is a nest
+                const isNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+                let ageColor = null;
+                let ageLabel = '';
+                
+                if (isNest) {
+                  const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+                  let nestDate = null;
+                  if (dateMatch) {
+                    nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+                  } else if (wp.timestamp) {
+                    nestDate = new Date(wp.timestamp);
+                  }
+                  
+                  if (nestDate && !isNaN(nestDate.getTime())) {
+                    const diffTime = Math.abs(new Date() - nestDate);
+                    const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    ageLabel = ` (${ageDays}d)`;
+                    
+                    if (ageDays >= 65) {
+                      ageColor = '#ff7a59'; // Red/Coral
+                    } else if (ageDays >= 55) {
+                      ageColor = '#f4a261'; // Orange
+                    } else if (ageDays >= 45) {
+                      ageColor = '#fde047'; // Yellow
+                    }
+                  }
+                }
+
+                const isConfirmedNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final';
+                let displayLabel = config.label;
+                if (isConfirmedNest) {
+                  const hasRelocatedInTitle = /relocated/i.test(wp.name);
+                  displayLabel = hasRelocatedInTitle ? 'Relocated Nest' : 'In Situ Nest';
+                }
+
+                const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
+                const cardBorderColor = ageColor || config.color;
+
                 return (
                   <div 
                     key={wp.id} 
@@ -530,7 +610,7 @@ export default function NearbyRadar({ userLocation }) {
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'space-between',
-                      borderLeft: `4px solid ${config.color}`
+                      borderLeft: `4px solid ${cardBorderColor}`
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
@@ -543,18 +623,27 @@ export default function NearbyRadar({ userLocation }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '16px',
-                        border: `1.5px solid ${config.color}`,
+                        border: `1.5px solid ${cardBorderColor}`,
                         flexShrink: 0
                       }}>
                         {config.symbol}
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: '0.9rem', color: '#e6f1ff', fontWeight: '600', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                          {wp.name}
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          color: ageColor || '#e6f1ff', 
+                          fontWeight: '600', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'hidden',
+                          textDecoration: isInventoried ? 'line-through' : 'none',
+                          opacity: isInventoried ? 0.6 : 1
+                        }}>
+                          {wp.name}{ageLabel}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: '#8892b0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                          {config.label}{wp.desc ? ` • ${wp.desc}` : ''}
+                          {displayLabel}{isInventoried ? ' • Inventoried' : ''}{wp.desc ? ` • ${wp.desc}` : ''}
                         </span>
                       </div>
                     </div>
