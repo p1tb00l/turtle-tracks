@@ -413,9 +413,9 @@ export default function NearbyRadar({ userLocation }) {
 
       {/* Filter Chips & Display Limit */}
       {!loading && !fetchError && userLocation && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Filter Chips */}
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', flex: 1 }}>
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { id: 'all', label: 'All' },
               { id: 'nests', label: 'Nests' },
@@ -451,7 +451,7 @@ export default function NearbyRadar({ userLocation }) {
           </div>
 
           {/* Limit Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '0.75rem', color: '#8892b0', fontWeight: '600' }}>Show Limit:</span>
             <select
               value={displayLimit}
