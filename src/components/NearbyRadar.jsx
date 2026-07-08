@@ -73,6 +73,11 @@ const getContrastColor = (color) => {
   }
 };
 
+const extractWaypointNumber = (name) => {
+  const match = name.match(/#(\d+)/) || name.match(/Nest\s*(\d+)/i) || name.match(/Crawl\s*(\d+)/i) || name.match(/(\d+)/);
+  return match ? match[1] : '';
+};
+
 const parseGPX = (gpxText) => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxText, 'text/xml');
@@ -133,6 +138,23 @@ export default function NearbyRadar({ userLocation }) {
   const isLocal = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const [waypoints, setWaypoints] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+
+  // Inject marker styles for displaying numbers on zoom 18
+  useEffect(() => {
+    if (!document.getElementById('radar-marker-styles')) {
+      const style = document.createElement('style');
+      style.id = 'radar-marker-styles';
+      style.innerHTML = `
+        .show-marker-numbers .symbol-content {
+          display: none !important;
+        }
+        .show-marker-numbers .number-content {
+          display: flex !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
   const [hasFitBounds, setHasFitBounds] = useState(false);
@@ -300,8 +322,28 @@ export default function NearbyRadar({ userLocation }) {
 
     mapRef.current = map;
 
+    const handleZoom = () => {
+      const currentZoom = map.getZoom();
+      const container = mapContainerRef.current;
+      if (container) {
+        if (currentZoom >= 18) {
+          container.classList.add('show-marker-numbers');
+        } else {
+          container.classList.remove('show-marker-numbers');
+        }
+      }
+    };
+
+    map.on('zoomend', handleZoom);
+    handleZoom();
+
     return () => {
+      const container = mapContainerRef.current;
+      if (container) {
+        container.classList.remove('show-marker-numbers');
+      }
       if (mapRef.current) {
+        mapRef.current.off('zoomend', handleZoom);
         mapRef.current.remove();
         mapRef.current = null;
       }
@@ -432,6 +474,7 @@ export default function NearbyRadar({ userLocation }) {
         const markerIcon = L.divIcon({
           className: `radar-marker subtype-${wp.subtype}`,
           html: `<div style="
+            position: relative;
             width: 32px; 
             height: 32px; 
             background-color: ${config.bg}; 
@@ -442,7 +485,23 @@ export default function NearbyRadar({ userLocation }) {
             justify-content: center;
             font-size: 16px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-          ">${config.symbol}</div>`,
+          ">
+            <span class="symbol-content">${config.symbol}</span>
+            <span class="number-content" style="
+              display: none;
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              justify-content: center;
+              font-size: 11px;
+              font-weight: 800;
+              color: #e6f1ff;
+              text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            ">${extractWaypointNumber(wp.name)}</span>
+          </div>`,
           iconSize: [32, 32],
           iconAnchor: [16, 16]
         });
