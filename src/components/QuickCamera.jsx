@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Camera, Trash2, Eye, Upload, Download } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -39,6 +39,62 @@ export default function QuickCamera() {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
+          // Add watermark (tag, comments, timestamp) similar to Sessions tab
+          const timestamp = new Date().toISOString();
+          const textParts = [new Date(timestamp).toLocaleString()];
+          if (currentNotes) textParts.push(`Notes: ${currentNotes}`);
+          const subtitleText = textParts.join(' | ');
+
+          // Configure font styles to calculate wraps
+          const titleFontSize = Math.max(14, Math.round(canvas.height * 0.024));
+          const bodyFontSize = Math.max(11, Math.round(canvas.height * 0.018));
+          const lineSpacing = Math.round(bodyFontSize * 0.3);
+          const padding = Math.max(10, Math.round(canvas.width * 0.03));
+          const maxWidth = canvas.width - (padding * 2);
+
+          // Calculate notes wrapping lines
+          ctx.font = `${bodyFontSize}px sans-serif`;
+          const words = subtitleText.split(' ');
+          const lines = [];
+          let currentLine = '';
+
+          for (let i = 0; i < words.length; i++) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + words[i];
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && currentLine) {
+              lines.push(currentLine);
+              currentLine = words[i];
+            } else {
+              currentLine = testLine;
+            }
+          }
+          if (currentLine) {
+            lines.push(currentLine);
+          }
+
+          // Draw dynamic size banner background
+          const bannerHeight = titleFontSize + (lines.length * (bodyFontSize + lineSpacing)) + (padding * 2);
+          ctx.fillStyle = 'rgba(2, 12, 27, 0.82)';
+          ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+          
+          // Draw Title / Tag
+          ctx.font = `600 ${titleFontSize}px sans-serif`;
+          ctx.fillStyle = '#64ffda';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          const tagText = `${currentTag || 'Field Log'}`.toUpperCase();
+          ctx.fillText(tagText, padding, canvas.height - bannerHeight + padding);
+          
+          // Draw Wrapped Notes Lines
+          ctx.font = `${bodyFontSize}px sans-serif`;
+          ctx.fillStyle = '#8892b0';
+          let currentY = canvas.height - bannerHeight + padding + titleFontSize + lineSpacing + 4;
+          
+          for (let j = 0; j < lines.length; j++) {
+            ctx.fillText(lines[j], padding, currentY);
+            currentY += bodyFontSize + lineSpacing;
+          }
+
           // Compress to JPEG with 0.7 quality to target 30-50KB size
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
 
@@ -47,7 +103,7 @@ export default function QuickCamera() {
             dataUrl: compressedDataUrl,
             tag: currentTag,
             notes: currentNotes,
-            timestamp: new Date().toISOString()
+            timestamp: timestamp
           };
           setPhotos([newPhoto, ...photos]);
           setCurrentNotes('');
