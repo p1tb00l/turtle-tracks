@@ -247,7 +247,7 @@ export default function GPXDatabase({ userLocation }) {
         
         const diffTime = Math.abs(new Date() - nestDate);
         const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        if (ageDays < 55) return false;
+        if (ageDays < 50) return false;
       }
 
       // 2. Filter by search query

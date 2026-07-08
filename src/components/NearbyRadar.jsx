@@ -226,7 +226,7 @@ export default function NearbyRadar({ userLocation }) {
         
         const diffTime = Math.abs(new Date() - nestDate);
         const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        return ageDays >= 55;
+        return ageDays >= 50;
       }
       return true;
     });
