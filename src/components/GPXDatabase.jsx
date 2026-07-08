@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { Search, ArrowLeft, Navigation, Map, AlertTriangle } from 'lucide-react';
+import { Search, ArrowLeft, Navigation, Map, AlertTriangle, Maximize2, Minimize2 } from 'lucide-react';
 
 // Haversine distance in meters
 const calculateDistance = (coords1, coords2) => {
@@ -150,6 +150,18 @@ export default function GPXDatabase({ userLocation }) {
     return localStorage.getItem('turtletracks_map_style') || 'satellite';
   });
   const tileLayerRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Invalidate Leaflet map size on fullscreen toggle
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map) {
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isFullscreen]);
 
   const handleStyleChange = (style) => {
     setMapStyle(style);
@@ -469,8 +481,47 @@ export default function GPXDatabase({ userLocation }) {
             </h3>
           </div>
 
-          <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', position: 'relative', height: '300px', minHeight: '300px' }}>
+          <div style={{
+            flex: 1,
+            borderRadius: isFullscreen ? 0 : '12px',
+            overflow: 'hidden',
+            position: isFullscreen ? 'fixed' : 'relative',
+            height: isFullscreen ? '100vh' : '300px',
+            minHeight: isFullscreen ? '100vh' : '300px',
+            width: isFullscreen ? '100vw' : '100%',
+            top: isFullscreen ? 0 : 'auto',
+            left: isFullscreen ? 0 : 'auto',
+            zIndex: isFullscreen ? 9999 : 'auto',
+            backgroundColor: '#020c1b',
+            transition: 'all 0.2s ease'
+          }}>
             <div ref={mapContainerRef} style={{ width: '100%', height: '100%', position: 'absolute' }}></div>
+            
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: '50px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '30px',
+                height: '30px',
+                backgroundColor: 'rgba(10, 25, 47, 0.85)',
+                borderRadius: '8px',
+                border: '1px solid rgba(48, 60, 85, 0.6)',
+                color: '#64ffda',
+                cursor: 'pointer',
+                zIndex: 1000,
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)'
+              }}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Map'}
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
             <div 
               style={{
                 position: 'absolute',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 export default function MapView({ path = [], crawls = [], center = null }) {
   const mapContainerRef = useRef(null);
@@ -17,6 +18,18 @@ export default function MapView({ path = [], crawls = [], center = null }) {
   const [showCommunities, setShowCommunities] = useState(() => {
     return localStorage.getItem('turtletracks_show_communities') === 'true';
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Invalidate Leaflet map size on fullscreen toggle
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map) {
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isFullscreen]);
 
   // Initial Map Mount
   useEffect(() => {
@@ -325,8 +338,43 @@ export default function MapView({ path = [], crawls = [], center = null }) {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '220px' }}></div>
+    <div style={{
+      position: isFullscreen ? 'fixed' : 'relative',
+      top: isFullscreen ? 0 : 'auto',
+      left: isFullscreen ? 0 : 'auto',
+      width: isFullscreen ? '100vw' : '100%',
+      height: isFullscreen ? '100vh' : '100%',
+      zIndex: isFullscreen ? 9999 : 'auto',
+      backgroundColor: '#020c1b',
+      transition: 'all 0.2s ease'
+    }}>
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: isFullscreen ? '100vh' : '220px' }}></div>
+      
+      {/* Fullscreen Toggle */}
+      <button
+        onClick={() => setIsFullscreen(!isFullscreen)}
+        style={{
+          position: 'absolute',
+          top: '10px',
+          left: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '30px',
+          height: '30px',
+          backgroundColor: 'rgba(10, 25, 47, 0.85)',
+          borderRadius: '8px',
+          border: '1px solid rgba(48, 60, 85, 0.6)',
+          color: '#64ffda',
+          cursor: 'pointer',
+          zIndex: 1000,
+          transition: 'all 0.2s ease',
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)'
+        }}
+        title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Map'}
+      >
+        {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+      </button>
       
       {/* Map style switcher */}
       <div 
