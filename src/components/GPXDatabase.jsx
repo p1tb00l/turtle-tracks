@@ -705,9 +705,9 @@ export default function GPXDatabase({ userLocation }) {
           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { id: 'all', label: 'All' },
-              { id: 'nests', label: 'Confirmed' },
+              { id: 'nests', label: 'Nests' },
               { id: 'relocated', label: 'Relocated' },
-              { id: 'crawls', label: 'False Crawls' },
+              { id: 'crawls', label: 'False' },
               { id: 'possible', label: 'Possible' }
             ].map(chip => {
               const isActive = activeFilter === chip.id;
