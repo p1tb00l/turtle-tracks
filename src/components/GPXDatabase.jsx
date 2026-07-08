@@ -224,6 +224,27 @@ export default function GPXDatabase({ userLocation }) {
         if (wp.subtype !== 'false_crawl') return false;
       } else if (activeFilter === 'possible') {
         if (wp.subtype !== 'possible_nest') return false;
+      } else if (activeFilter === 'due') {
+        const isNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final' || wp.subtype === 'relocated_original';
+        if (!isNest) return false;
+
+        const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
+        if (isInventoried) return false;
+
+        // Parse date and check if it's >= 55 days old
+        const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+        let nestDate = null;
+        if (dateMatch) {
+          nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+        } else if (wp.timestamp) {
+          nestDate = new Date(wp.timestamp);
+        }
+        
+        if (!nestDate || isNaN(nestDate.getTime())) return false;
+        
+        const diffTime = Math.abs(new Date() - nestDate);
+        const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (ageDays < 55) return false;
       }
 
       // 2. Filter by search query
@@ -754,10 +775,11 @@ export default function GPXDatabase({ userLocation }) {
           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { id: 'all', label: 'All' },
-              { id: 'nests', label: 'Confirmed Nests' },
+              { id: 'nests', label: 'Confirmed' },
               { id: 'relocated', label: 'Relocated' },
               { id: 'crawls', label: 'False Crawls' },
-              { id: 'possible', label: 'Possible' }
+              { id: 'possible', label: 'Possible' },
+              { id: 'due', label: 'Due' }
             ].map(chip => {
               const isActive = activeFilter === chip.id;
               return (
