@@ -61,6 +61,17 @@ const SUBTYPES_CONFIG = {
   }
 };
 
+const getContrastColor = (color) => {
+  switch (color) {
+    case '#64ffda': return '#00796b'; // Teal -> Dark Teal
+    case '#fde047': return '#b7791f'; // Yellow -> Dark Gold
+    case '#f4a261': return '#c2410c'; // Orange -> Dark Orange
+    case '#ff7a59': return '#b91c1c'; // Red/Coral -> Crimson Red
+    case '#a5b4fc': return '#4338ca'; // Light Indigo -> Dark Indigo
+    default: return color;
+  }
+};
+
 const parseGPX = (gpxText) => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxText, 'text/xml');
@@ -305,7 +316,7 @@ export default function GPXDatabase({ userLocation }) {
     const popupContent = `
       <div style="color: #0a192f; font-family: sans-serif; font-size: 12px; width: 180px; line-height: 1.4;">
         <h4 style="margin: 0 0 4px 0; color: #111; font-weight: bold; font-size: 13px;">${selectedWaypoint.name}</h4>
-        <strong style="color: ${config.color}; display: block; margin-bottom: 4px; font-size: 11px;">${displayLabel}</strong>
+        <strong style="color: ${getContrastColor(config.color)}; display: block; margin-bottom: 4px; font-size: 11px;">${displayLabel}</strong>
         ${selectedWaypoint.desc ? `<div style="margin-top: 4px; color: #555;">${selectedWaypoint.desc}</div>` : ''}
       </div>
     `;
