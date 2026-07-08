@@ -2,6 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
+// Haversine distance in meters
+const calculateDistance = (coords1, coords2) => {
+  if (!coords1 || !coords2) return 0;
+  const R = 6371e3; // Earth radius in meters
+  const rad = Math.PI / 180;
+  const lat1 = coords1.lat * rad;
+  const lat2 = coords2.lat * rad;
+  const dLat = (coords2.lat - coords1.lat) * rad;
+  const dLng = (coords2.lng - coords1.lng) * rad;
+
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1) * Math.cos(lat2) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // meters
+};
+
 export default function MapView({ path = [], crawls = [], center = null }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -153,12 +170,32 @@ export default function MapView({ path = [], crawls = [], center = null }) {
 
     if (!crawls || crawls.length === 0) return;
 
+    const displayCoordsList = [];
+
     crawls.forEach((crawl, idx) => {
       if (!crawl.coordinates) return;
 
       const { lat, lng } = crawl.coordinates;
       const isNest = crawl.type === 'nest';
       const isPossibleNest = crawl.isPossibleNest;
+
+      // Calculate display coordinates to offset overlapping points (within 6 meters)
+      const nearby = displayCoordsList.filter(c => calculateDistance(c, { lat, lng }) < 6);
+      let displayLat = lat;
+      let displayLng = lng;
+
+      if (nearby.length > 0) {
+        const count = nearby.length;
+        const angle = (count * 137.5 * Math.PI) / 180;
+        const radiusMeters = 5 + 2 * count;
+        const offsetLat = (radiusMeters * Math.sin(angle)) / 111111;
+        const offsetLng = (radiusMeters * Math.cos(angle)) / (111111 * Math.cos(lat * Math.PI / 180));
+        
+        displayLat = lat + offsetLat;
+        displayLng = lng + offsetLng;
+      }
+
+      displayCoordsList.push({ lat: displayLat, lng: displayLng });
 
       let markerClass = 'turtle-marker marker-false';
       let symbol = '✗'; // false crawl
@@ -188,7 +225,7 @@ export default function MapView({ path = [], crawls = [], center = null }) {
         </div>
       `;
 
-      const marker = L.marker([lat, lng], { icon: customIcon })
+      const marker = L.marker([displayLat, displayLng], { icon: customIcon })
         .bindPopup(popupContent)
         .addTo(map);
 

@@ -206,10 +206,42 @@ export default function NearbyRadar({ userLocation }) {
       })
       .sort((a, b) => a.distanceMeters - b.distanceMeters);
 
-    if (displayLimit === 'all') {
-      return sorted;
-    }
-    return sorted.slice(0, Number(displayLimit));
+    const limited = displayLimit === 'all' ? sorted : sorted.slice(0, Number(displayLimit));
+
+    // Offset overlapping or very close coordinates (within 6 meters)
+    const adjusted = [];
+    const coordsList = [];
+
+    limited.forEach((wp) => {
+      const nearby = coordsList.filter(c => calculateDistance(c, { lat: wp.lat, lng: wp.lng }) < 6);
+      
+      if (nearby.length > 0) {
+        const count = nearby.length;
+        const angle = (count * 137.5 * Math.PI) / 180;
+        const radiusMeters = 5 + 2 * count;
+        const offsetLat = (radiusMeters * Math.sin(angle)) / 111111;
+        const offsetLng = (radiusMeters * Math.cos(angle)) / (111111 * Math.cos(wp.lat * Math.PI / 180));
+        
+        const displayLat = wp.lat + offsetLat;
+        const displayLng = wp.lng + offsetLng;
+        
+        adjusted.push({
+          ...wp,
+          displayLat,
+          displayLng
+        });
+        coordsList.push({ lat: displayLat, lng: displayLng });
+      } else {
+        adjusted.push({
+          ...wp,
+          displayLat: wp.lat,
+          displayLng: wp.lng
+        });
+        coordsList.push({ lat: wp.lat, lng: wp.lng });
+      }
+    });
+
+    return adjusted;
   }, [waypoints, userLocation, activeFilter, displayLimit]);
 
   // Leaflet map setup (only center when initial mount/switch occurs)
@@ -391,7 +423,7 @@ export default function NearbyRadar({ userLocation }) {
           </div>
         `;
 
-        const marker = L.marker([wp.lat, wp.lng], { icon: markerIcon })
+        const marker = L.marker([wp.displayLat, wp.displayLng], { icon: markerIcon })
           .bindPopup(popupContent)
           .addTo(map);
 
@@ -405,7 +437,7 @@ export default function NearbyRadar({ userLocation }) {
     if (processedWaypoints.length > 0 && userLocation && !hasFitBounds) {
       const boundsPoints = [
         [userLocation.lat, userLocation.lng],
-        ...processedWaypoints.map(wp => [wp.lat, wp.lng])
+        ...processedWaypoints.map(wp => [wp.displayLat, wp.displayLng])
       ];
       map.fitBounds(boundsPoints, { padding: [40, 40], maxZoom: 16 });
       setHasFitBounds(true);
