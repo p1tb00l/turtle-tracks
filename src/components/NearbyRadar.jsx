@@ -326,7 +326,7 @@ export default function NearbyRadar({ userLocation }) {
       const currentZoom = map.getZoom();
       const container = mapContainerRef.current;
       if (container) {
-        if (currentZoom >= 18) {
+        if (currentZoom >= 17) {
           container.classList.add('show-marker-numbers');
         } else {
           container.classList.remove('show-marker-numbers');
