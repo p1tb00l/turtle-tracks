@@ -498,8 +498,8 @@ export default function NearbyRadar({ userLocation }) {
               justify-content: center;
               font-size: 11px;
               font-weight: 800;
-              color: #e6f1ff;
-              text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+              color: ${mapStyle === 'dark' ? '#e6f1ff' : '#020c1b'};
+              text-shadow: ${mapStyle === 'dark' ? '0 1px 2px rgba(0,0,0,0.8)' : '0 1px 1px rgba(255,255,255,0.8)'};
             ">${extractWaypointNumber(wp.name)}</span>
           </div>`,
           iconSize: [32, 32],
@@ -537,7 +537,7 @@ export default function NearbyRadar({ userLocation }) {
       map.fitBounds(boundsPoints, { padding: [40, 40], maxZoom: 16 });
       setHasFitBounds(true);
     }
-  }, [processedWaypoints, userLocation, viewMode, hasFitBounds]);
+  }, [processedWaypoints, userLocation, viewMode, hasFitBounds, mapStyle]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '100%' }}>
