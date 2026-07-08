@@ -68,6 +68,7 @@ const getContrastColor = (color) => {
     case '#f4a261': return '#c2410c'; // Orange -> Dark Orange
     case '#ff7a59': return '#b91c1c'; // Red/Coral -> Crimson Red
     case '#a5b4fc': return '#4338ca'; // Light Indigo -> Dark Indigo
+    case '#a3e635': return '#4d7c0f'; // Lime -> Dark Lime
     default: return color;
   }
 };
@@ -642,8 +643,12 @@ export default function GPXDatabase({ userLocation }) {
               }
             }
 
-            const headerBorderColor = ageColor || config.color;
             const isInventoried = selectedWaypoint.name.toLowerCase().includes('inventoried') || (selectedWaypoint.desc && selectedWaypoint.desc.toLowerCase().includes('inventoried'));
+            if (isNest && isInventoried) {
+              ageColor = '#a3e635'; // Lime green for inventoried
+            }
+
+            const headerBorderColor = ageColor || config.color;
 
             return (
               <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -851,8 +856,8 @@ export default function GPXDatabase({ userLocation }) {
                   }
                 }
 
-                const isInventoried = wp.name.toLowerCase().includes('inventoried');
-                const cardBorderColor = ageColor || config.color;
+                const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
+                const cardBorderColor = (isNest && isInventoried) ? '#a3e635' : (ageColor || config.color);
 
                 return (
                   <div
@@ -894,7 +899,7 @@ export default function GPXDatabase({ userLocation }) {
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <span style={{ 
                           fontSize: '0.85rem', 
-                          color: ageColor || '#e6f1ff', 
+                          color: (isNest && isInventoried) ? '#a3e635' : (ageColor || '#e6f1ff'), 
                           fontWeight: '600', 
                           textOverflow: 'ellipsis', 
                           whiteSpace: 'nowrap', 
