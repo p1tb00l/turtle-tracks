@@ -213,12 +213,12 @@ export default function NearbyRadar({ userLocation }) {
     const coordsList = [];
 
     limited.forEach((wp) => {
-      const nearby = coordsList.filter(c => calculateDistance(c, { lat: wp.lat, lng: wp.lng }) < 6);
+      const nearby = coordsList.filter(c => calculateDistance(c, { lat: wp.lat, lng: wp.lng }) < 10);
       
       if (nearby.length > 0) {
         const count = nearby.length;
         const angle = (count * 137.5 * Math.PI) / 180;
-        const radiusMeters = 5 + 2 * count;
+        const radiusMeters = 15 + 5 * count;
         const offsetLat = (radiusMeters * Math.sin(angle)) / 111111;
         const offsetLng = (radiusMeters * Math.cos(angle)) / (111111 * Math.cos(wp.lat * Math.PI / 180));
         

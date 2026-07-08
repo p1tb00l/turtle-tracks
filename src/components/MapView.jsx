@@ -179,15 +179,15 @@ export default function MapView({ path = [], crawls = [], center = null }) {
       const isNest = crawl.type === 'nest';
       const isPossibleNest = crawl.isPossibleNest;
 
-      // Calculate display coordinates to offset overlapping points (within 6 meters)
-      const nearby = displayCoordsList.filter(c => calculateDistance(c, { lat, lng }) < 6);
+      // Calculate display coordinates to offset overlapping points (within 10 meters)
+      const nearby = displayCoordsList.filter(c => calculateDistance(c, { lat, lng }) < 10);
       let displayLat = lat;
       let displayLng = lng;
 
       if (nearby.length > 0) {
         const count = nearby.length;
         const angle = (count * 137.5 * Math.PI) / 180;
-        const radiusMeters = 5 + 2 * count;
+        const radiusMeters = 15 + 5 * count;
         const offsetLat = (radiusMeters * Math.sin(angle)) / 111111;
         const offsetLng = (radiusMeters * Math.cos(angle)) / (111111 * Math.cos(lat * Math.PI / 180));
         
