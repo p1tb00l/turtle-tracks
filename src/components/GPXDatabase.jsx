@@ -258,6 +258,12 @@ export default function GPXDatabase({ userLocation }) {
       return [...list].sort((a, b) => a.distanceMeters - b.distanceMeters);
     } else if (sortBy === 'number-asc') {
       return [...list].sort((a, b) => extractWaypointNumber(a.name) - extractWaypointNumber(b.name));
+    } else if (sortBy === 'north-south') {
+      const getBeachAxisScore = (wp) => wp.lat * 0.041 + wp.lng * 0.035;
+      return [...list].sort((a, b) => getBeachAxisScore(b) - getBeachAxisScore(a));
+    } else if (sortBy === 'south-north') {
+      const getBeachAxisScore = (wp) => wp.lat * 0.041 + wp.lng * 0.035;
+      return [...list].sort((a, b) => getBeachAxisScore(a) - getBeachAxisScore(b));
     } else {
       // Default: number-desc
       return [...list].sort((a, b) => extractWaypointNumber(b.name) - extractWaypointNumber(a.name));
@@ -795,6 +801,8 @@ export default function GPXDatabase({ userLocation }) {
               >
                 <option value="number-desc">Sort: # High-Low</option>
                 <option value="number-asc">Sort: # Low-High</option>
+                <option value="north-south">Sort: North ➔ South</option>
+                <option value="south-north">Sort: South ➔ North</option>
                 <option value="distance" disabled={!userLocation}>
                   Sort: Distance {!userLocation ? '(No GPS)' : ''}
                 </option>
