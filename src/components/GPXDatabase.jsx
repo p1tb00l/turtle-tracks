@@ -780,7 +780,7 @@ export default function GPXDatabase({ userLocation }) {
               { id: 'all', label: 'All' },
               { id: 'nests', label: 'Confirmed' },
               { id: 'relocated', label: 'Relocated' },
-              { id: 'crawls', label: 'False Crawls' },
+              { id: 'crawls', label: 'False' },
               { id: 'possible', label: 'Possible' },
               { id: 'due', label: 'Due' }
             ].map(chip => {
