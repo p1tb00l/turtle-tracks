@@ -556,21 +556,20 @@ export default function NearbyRadar({ userLocation }) {
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 style={{
                   position: 'absolute',
-                  top: '10px',
-                  left: '50px',
+                  top: '80px',
+                  left: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: '30px',
-                  height: '30px',
-                  backgroundColor: 'rgba(10, 25, 47, 0.85)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(48, 60, 85, 0.6)',
+                  width: '34px',
+                  height: '34px',
+                  backgroundColor: '#172a45',
+                  borderRadius: '4px',
+                  border: '2px solid #64ffda',
                   color: '#64ffda',
                   cursor: 'pointer',
-                  zIndex: 1000,
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)'
+                  zIndex: 99999,
+                  boxShadow: '0 1px 5px rgba(0,0,0,0.65)'
                 }}
                 title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Map'}
               >
