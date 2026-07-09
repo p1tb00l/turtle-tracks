@@ -884,6 +884,13 @@ export default function GPXDatabase({ userLocation }) {
                 const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
                 const cardBorderColor = (isNest && isInventoried) ? '#a3e635' : (ageColor || config.color);
 
+                const isConfirmedNest = wp.subtype === 'in_situ' || wp.subtype === 'relocated_final';
+                let displayLabel = config.label;
+                if (isConfirmedNest) {
+                  const hasRelocatedInTitle = /relocated/i.test(wp.name);
+                  displayLabel = hasRelocatedInTitle ? 'Relocated Nest' : 'In Situ Nest';
+                }
+
                 return (
                   <div
                     key={wp.id}
@@ -935,7 +942,7 @@ export default function GPXDatabase({ userLocation }) {
                           {wp.name}{ageLabel}
                         </span>
                         <span style={{ fontSize: '0.72rem', color: '#8892b0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '1px' }}>
-                          {config.label} {wp.desc ? `• ${wp.desc}` : ''}
+                          {displayLabel} {wp.desc ? `• ${wp.desc}` : ''}
                         </span>
                       </div>
                     </div>
