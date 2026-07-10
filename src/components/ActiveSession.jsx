@@ -428,7 +428,8 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', gap: '20px', position: 'relative' }}>
+      {databaseCounters.maxNest > 108 && <CelebrationTurtles />}
       
       {/* 1. SESSION NOT STARTED STATE */}
       {!activeSession ? (
@@ -938,6 +939,94 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function CelebrationTurtles() {
+  const [turtles, setTurtles] = useState([]);
+
+  useEffect(() => {
+    const accessories = ['🥳', '🎉', '👑', '🎩', '🎀'];
+    
+    const spawnTurtle = () => {
+      const id = Date.now() + Math.random();
+      const accessory = accessories[Math.floor(Math.random() * accessories.length)];
+      const duration = 10 + Math.random() * 8; // seconds to cross screen
+      const top = 10 + Math.random() * 80; // vertical position
+      const scale = 0.7 + Math.random() * 0.6; // size
+      
+      setTurtles(prev => [...prev, { id, accessory, duration, top, scale }]);
+      
+      setTimeout(() => {
+        setTurtles(prev => prev.filter(t => t.id !== id));
+      }, (duration + 1) * 1000);
+    };
+
+    // Spawn initial turtles
+    for (let i = 0; i < 5; i++) {
+      setTimeout(spawnTurtle, Math.random() * 6000);
+    }
+
+    const interval = setInterval(spawnTurtle, 4000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      overflow: 'hidden',
+      zIndex: 10,
+    }}>
+      {turtles.map(turtle => (
+        <div
+          key={turtle.id}
+          style={{
+            position: 'absolute',
+            top: `${turtle.top}%`,
+            left: '-60px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            transform: `scale(${turtle.scale})`,
+            animation: `crawlAcross ${turtle.duration}s linear forwards`,
+          }}
+        >
+          <span style={{ fontSize: '1rem', marginBottom: '-5px', zIndex: 1, transform: 'rotate(10deg)' }}>
+            {turtle.accessory}
+          </span>
+          <span style={{ fontSize: '2rem', animation: 'wiggleLegs 0.6s ease-in-out infinite alternate' }}>
+            🐢
+          </span>
+        </div>
+      ))}
+
+      <style>{`
+        @keyframes crawlAcross {
+          0% {
+            left: -80px;
+          }
+          100% {
+            left: calc(100% + 80px);
+          }
+        }
+        @keyframes wiggleLegs {
+          0% {
+            transform: rotate(-6deg);
+          }
+          100% {
+            transform: rotate(6deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
