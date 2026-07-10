@@ -213,16 +213,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   const [showWizard, setShowWizard] = useState(false);
   const [isTurtleEncounter, setIsTurtleEncounter] = useState(false);
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState(null);
-
-  const handleCelebrationFinished = () => {
-    setShowCelebration(false);
-    if (pendingNavigation) {
-      handleCounterClick(pendingNavigation);
-      setPendingNavigation(null);
-    }
-  };
   
   // Geolocation tracking hook
   const isTracking = !!activeSession;
@@ -281,10 +271,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
           }
         }
         setDatabaseCounters({ maxNest, maxFalseCrawl, possibleCount });
-        if (maxNest > 108 && !sessionStorage.getItem('turtletracks_record_celebrated')) {
-          setShowCelebration(true);
-          sessionStorage.setItem('turtletracks_record_celebrated', 'true');
-        }
       })
       .catch(err => console.error('Error loading GPX counters:', err));
   }, []);
@@ -485,10 +471,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
                 <div 
                   className="overview-counter-card"
-                  onClick={() => {
-                    setPendingNavigation('nests');
-                    setShowCelebration(true);
-                  }}
+                  onClick={() => handleCounterClick('nests')}
                   style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px', border: '1px solid rgba(100, 255, 218, 0.2)', cursor: 'pointer' }}
                 >
                   <span style={{ fontSize: '1.2rem', display: 'block', marginBottom: '2px' }}>🐢</span>
@@ -953,192 +936,8 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
               GPS WALK SIMULATOR ACTIVE: Moving southwest along Melrose Beach...
             </div>
           )}
-          {showCelebration && (
-            <CelebrationAnimation onFinished={handleCelebrationFinished} />
-          )}
         </div>
       )}
-    </div>
-  );
-}
-
-function CelebrationAnimation({ onFinished }) {
-  const [turtles, setTurtles] = useState([]);
-
-  useEffect(() => {
-    const accessories = ['🥳', '🎉', '👑', '🎩', '🎀'];
-    const generated = Array.from({ length: 18 }).map((_, idx) => {
-      const accessory = accessories[idx % accessories.length];
-      const startDelay = Math.random() * 6; // seconds
-      const duration = 8 + Math.random() * 6; // seconds
-      const top = 10 + Math.random() * 80; // % height
-      const scale = 0.8 + Math.random() * 0.6;
-      return {
-        id: idx,
-        accessory,
-        startDelay,
-        duration,
-        top,
-        scale,
-      };
-    });
-    setTurtles(generated);
-
-    const timer = setTimeout(() => {
-      if (onFinished) onFinished();
-    }, 15000);
-
-    return () => clearTimeout(timer);
-  }, [onFinished]);
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      pointerEvents: 'none',
-      zIndex: 99999,
-      overflow: 'hidden',
-    }}>
-      {/* Confetti falling */}
-      <div className="confetti-container" style={{ position: 'absolute', width: '100%', height: '100%' }}>
-        {Array.from({ length: 40 }).map((_, idx) => {
-          const left = Math.random() * 100;
-          const delay = Math.random() * 5;
-          const duration = 4 + Math.random() * 4;
-          const size = 6 + Math.random() * 8;
-          const colors = ['#64ffda', '#a3e635', '#fde047', '#f4a261', '#ff7a59', '#a5b4fc'];
-          const color = colors[idx % colors.length];
-          return (
-            <div
-              key={`confetti-${idx}`}
-              style={{
-                position: 'absolute',
-                top: '-20px',
-                left: `${left}%`,
-                width: `${size}px`,
-                height: `${size}px`,
-                backgroundColor: color,
-                borderRadius: Math.random() > 0.5 ? '50%' : '0%',
-                opacity: 0.8,
-                animation: `fall ${duration}s linear infinite`,
-                animationDelay: `${delay}s`,
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Crawling Turtles */}
-      {turtles.map(turtle => (
-        <div
-          key={turtle.id}
-          style={{
-            position: 'absolute',
-            top: `${turtle.top}%`,
-            left: '-100px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            transform: `scale(${turtle.scale})`,
-            animation: `crawl ${turtle.duration}s linear forwards`,
-            animationDelay: `${turtle.startDelay}s`,
-          }}
-        >
-          <span style={{ fontSize: '1.2rem', marginBottom: '-6px', zIndex: 1, transform: 'rotate(10deg)' }}>
-            {turtle.accessory}
-          </span>
-          <span style={{ fontSize: '2.5rem', animation: 'wiggle 0.5s ease-in-out infinite alternate' }}>
-            🐢
-          </span>
-        </div>
-      ))}
-
-      {/* Celebration Banner */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'center',
-        background: 'rgba(2, 12, 27, 0.95)',
-        border: '2px solid #64ffda',
-        boxShadow: '0 10px 30px rgba(0, 255, 218, 0.25)',
-        backdropFilter: 'blur(8px)',
-        padding: '24px 36px',
-        borderRadius: '16px',
-        animation: 'bannerEntrance 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-        zIndex: 100000,
-        pointerEvents: 'auto',
-      }}>
-        <h1 style={{ color: '#64ffda', margin: '0 0 8px 0', fontSize: '1.8rem', fontWeight: '800' }}>
-          🎉 NEW RECORD! 🎉
-        </h1>
-        <p style={{ color: '#e6f1ff', margin: '0 0 16px 0', fontSize: '1rem', lineHeight: '1.4' }}>
-          Daufuskie Island has surpassed the previous record of 108 nests! 🥳🐢
-        </p>
-        <button
-          onClick={onFinished}
-          style={{
-            backgroundColor: 'transparent',
-            border: '2px solid #64ffda',
-            color: '#64ffda',
-            padding: '8px 20px',
-            borderRadius: '20px',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(100, 255, 218, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-        >
-          Keep Tracking!
-        </button>
-      </div>
-
-      <style>{`
-        @keyframes fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-          }
-          100% {
-            transform: translateY(105vh) rotate(360deg);
-          }
-        }
-        @keyframes crawl {
-          0% {
-            left: -100px;
-          }
-          100% {
-            left: 105vw;
-          }
-        }
-        @keyframes wiggle {
-          0% {
-            transform: rotate(-5deg);
-          }
-          100% {
-            transform: rotate(5deg);
-          }
-        }
-        @keyframes bannerEntrance {
-          0% {
-            opacity: 0;
-            transform: translate(-50%, -80%) scale(0.8);
-          }
-          100% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
-      `}</style>
     </div>
   );
 }
