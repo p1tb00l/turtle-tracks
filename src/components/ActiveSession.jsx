@@ -944,31 +944,32 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 }
 
 function CelebrationTurtles() {
-  const [turtles, setTurtles] = useState([]);
+  const [items, setItems] = useState([]);
 
   useEffect(() => {
     const accessories = ['🥳', '🎉', '👑', '🎩', '🎀'];
     
-    const spawnTurtle = () => {
+    const spawnItem = () => {
       const id = Date.now() + Math.random();
+      const isTrophy = Math.random() > 0.6; // 40% chance of trophy, 60% chance of turtle
       const accessory = accessories[Math.floor(Math.random() * accessories.length)];
-      const duration = 10 + Math.random() * 8; // seconds to cross screen
-      const top = 10 + Math.random() * 80; // vertical position
+      const duration = 8 + Math.random() * 6; // seconds to fall down
+      const left = Math.random() * 95; // horizontal position percentage
       const scale = 0.7 + Math.random() * 0.6; // size
       
-      setTurtles(prev => [...prev, { id, accessory, duration, top, scale }]);
+      setItems(prev => [...prev, { id, isTrophy, accessory, duration, left, scale }]);
       
       setTimeout(() => {
-        setTurtles(prev => prev.filter(t => t.id !== id));
+        setItems(prev => prev.filter(item => item.id !== id));
       }, (duration + 1) * 1000);
     };
 
-    // Spawn initial turtles
-    for (let i = 0; i < 5; i++) {
-      setTimeout(spawnTurtle, Math.random() * 6000);
+    // Spawn initial items
+    for (let i = 0; i < 6; i++) {
+      setTimeout(spawnItem, Math.random() * 5000);
     }
 
-    const interval = setInterval(spawnTurtle, 4000);
+    const interval = setInterval(spawnItem, 2500);
 
     return () => {
       clearInterval(interval);
@@ -986,44 +987,60 @@ function CelebrationTurtles() {
       overflow: 'hidden',
       zIndex: 10,
     }}>
-      {turtles.map(turtle => (
+      {items.map(item => (
         <div
-          key={turtle.id}
+          key={item.id}
           style={{
             position: 'absolute',
-            top: `${turtle.top}%`,
-            left: '-60px',
+            top: '-80px',
+            left: `${item.left}%`,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            transform: `scale(${turtle.scale})`,
-            animation: `crawlAcross ${turtle.duration}s linear forwards`,
+            transform: `scale(${item.scale})`,
+            animation: `fallDown ${item.duration}s linear forwards`,
           }}
         >
-          <span style={{ fontSize: '1rem', marginBottom: '-5px', zIndex: 1, transform: 'rotate(10deg)' }}>
-            {turtle.accessory}
-          </span>
-          <span style={{ fontSize: '2rem', animation: 'wiggleLegs 0.6s ease-in-out infinite alternate' }}>
-            🐢
-          </span>
+          {item.isTrophy ? (
+            <span style={{ fontSize: '2.5rem', animation: 'spinSlowly 3s linear infinite' }}>
+              🏆
+            </span>
+          ) : (
+            <>
+              <span style={{ fontSize: '1rem', marginBottom: '-5px', zIndex: 1, transform: 'rotate(10deg)' }}>
+                {item.accessory}
+              </span>
+              <span style={{ fontSize: '2rem', animation: 'wiggleLegs 0.6s ease-in-out infinite alternate' }}>
+                🐢
+              </span>
+            </>
+          )}
         </div>
       ))}
 
       <style>{`
-        @keyframes crawlAcross {
+        @keyframes fallDown {
           0% {
-            left: -80px;
+            transform: translateY(0) rotate(0deg);
           }
           100% {
-            left: calc(100% + 80px);
+            transform: translateY(115vh) rotate(360deg);
           }
         }
         @keyframes wiggleLegs {
           0% {
-            transform: rotate(-6deg);
+            transform: rotate(-8deg);
           }
           100% {
-            transform: rotate(6deg);
+            transform: rotate(8deg);
+          }
+        }
+        @keyframes spinSlowly {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
           }
         }
       `}</style>
