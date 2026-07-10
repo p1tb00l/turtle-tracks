@@ -214,6 +214,15 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   const [isTurtleEncounter, setIsTurtleEncounter] = useState(false);
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
   const [showCelebration, setShowCelebration] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+
+  const handleCelebrationFinished = () => {
+    setShowCelebration(false);
+    if (pendingNavigation) {
+      handleCounterClick(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
   
   // Geolocation tracking hook
   const isTracking = !!activeSession;
@@ -477,7 +486,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                 <div 
                   className="overview-counter-card"
                   onClick={() => {
-                    handleCounterClick('nests');
+                    setPendingNavigation('nests');
                     setShowCelebration(true);
                   }}
                   style={{ backgroundColor: 'rgba(2, 12, 27, 0.4)', padding: '8px 4px', borderRadius: '8px', border: '1px solid rgba(100, 255, 218, 0.2)', cursor: 'pointer' }}
@@ -945,7 +954,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
             </div>
           )}
           {showCelebration && (
-            <CelebrationAnimation onFinished={() => setShowCelebration(false)} />
+            <CelebrationAnimation onFinished={handleCelebrationFinished} />
           )}
         </div>
       )}
