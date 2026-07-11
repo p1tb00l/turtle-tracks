@@ -947,17 +947,18 @@ function CelebrationTurtles() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const accessories = ['🥳', '🎉', '👑', '🎩', '🎀'];
+    const emojiPool = ['🐢', '🐢', '🐢', '🐢', '🐢', '🐢', '🏆', '🥳', '🎉', '👑', '🎩', '🎀'];
     
     const spawnItem = () => {
       const id = Date.now() + Math.random();
-      const isTrophy = Math.random() > 0.6; // 40% chance of trophy, 60% chance of turtle
-      const accessory = accessories[Math.floor(Math.random() * accessories.length)];
-      const duration = 8 + Math.random() * 6; // seconds to fall down
+      const emoji = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+      const duration = 6 + Math.random() * 5; // seconds to fall down
       const left = Math.random() * 95; // horizontal position percentage
-      const scale = 0.7 + Math.random() * 0.6; // size
+      const scale = 0.6 + Math.random() * 0.7; // size variety
+      const spinDirection = Math.random() > 0.5 ? 1 : -1;
+      const spinSpeed = 2 + Math.random() * 4; // seconds per rotation
       
-      setItems(prev => [...prev, { id, isTrophy, accessory, duration, left, scale }]);
+      setItems(prev => [...prev, { id, emoji, duration, left, scale, spinDirection, spinSpeed }]);
       
       setTimeout(() => {
         setItems(prev => prev.filter(item => item.id !== id));
@@ -965,11 +966,11 @@ function CelebrationTurtles() {
     };
 
     // Spawn initial items
-    for (let i = 0; i < 6; i++) {
-      setTimeout(spawnItem, Math.random() * 5000);
+    for (let i = 0; i < 12; i++) {
+      setTimeout(spawnItem, Math.random() * 4000);
     }
 
-    const interval = setInterval(spawnItem, 2500);
+    const interval = setInterval(spawnItem, 800);
 
     return () => {
       clearInterval(interval);
@@ -992,50 +993,31 @@ function CelebrationTurtles() {
           key={item.id}
           style={{
             position: 'absolute',
-            top: '-80px',
+            top: '-60px',
             left: `${item.left}%`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            transform: `scale(${item.scale})`,
-            animation: `fallDown ${item.duration}s linear forwards`,
+            fontSize: `${2 * item.scale}rem`,
+            animation: `fallDownOnly ${item.duration}s linear forwards`,
           }}
         >
-          {item.isTrophy ? (
-            <span style={{ fontSize: '2.5rem', animation: 'spinSlowly 3s linear infinite' }}>
-              🏆
-            </span>
-          ) : (
-            <>
-              <span style={{ fontSize: '1rem', marginBottom: '-5px', zIndex: 1, transform: 'rotate(10deg)' }}>
-                {item.accessory}
-              </span>
-              <span style={{ fontSize: '2rem', animation: 'wiggleLegs 0.6s ease-in-out infinite alternate' }}>
-                🐢
-              </span>
-            </>
-          )}
+          <div style={{
+            animation: `spinTumble ${item.spinSpeed}s linear infinite`,
+            animationDirection: item.spinDirection > 0 ? 'normal' : 'reverse',
+          }}>
+            {item.emoji}
+          </div>
         </div>
       ))}
 
       <style>{`
-        @keyframes fallDown {
+        @keyframes fallDownOnly {
           0% {
-            transform: translateY(0) rotate(0deg);
+            transform: translateY(0);
           }
           100% {
-            transform: translateY(115vh) rotate(360deg);
+            transform: translateY(115vh);
           }
         }
-        @keyframes wiggleLegs {
-          0% {
-            transform: rotate(-8deg);
-          }
-          100% {
-            transform: rotate(8deg);
-          }
-        }
-        @keyframes spinSlowly {
+        @keyframes spinTumble {
           0% {
             transform: rotate(0deg);
           }
