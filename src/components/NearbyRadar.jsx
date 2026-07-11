@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Map, List, Navigation, AlertTriangle, Maximize2, Minimize2 } from 'lucide-react';
+import { COMMUNITIES } from '../utils/communities';
 
 // Haversine distance in meters
 const calculateDistance = (coords1, coords2) => {
@@ -170,6 +171,16 @@ export default function NearbyRadar({ userLocation }) {
   });
   const tileLayerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showCommunities, setShowCommunities] = useState(() => {
+    return localStorage.getItem('turtletracks_show_communities') === 'true';
+  });
+  const communityLayersRef = useRef([]);
+
+  const handleToggleCommunities = () => {
+    const nextVal = !showCommunities;
+    setShowCommunities(nextVal);
+    localStorage.setItem('turtletracks_show_communities', String(nextVal));
+  };
   const [displayLimit, setDisplayLimit] = useState(20);
 
   // Invalidate Leaflet map size on fullscreen toggle
@@ -379,6 +390,62 @@ export default function NearbyRadar({ userLocation }) {
       attribution: attribution
     }).addTo(map);
   }, [mapStyle, viewMode]);
+
+  // Manage Daufuskie Island communities overlay
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || viewMode !== 'map') return;
+
+    // Clear existing community layers
+    communityLayersRef.current.forEach(layer => map.removeLayer(layer));
+    communityLayersRef.current = [];
+
+    if (!showCommunities) return;
+
+    const colors = {
+      'Haig Point': '#64ffda',
+      'Melrose': '#00b4d8',
+      'Oak Ridge': '#ff7a59',
+      'Bloody Point': '#ff477e'
+    };
+
+    COMMUNITIES.forEach(comm => {
+      const color = colors[comm.name] || '#64ffda';
+      const polygon = L.polygon(comm.coordinates, {
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.15,
+        weight: 1.5,
+        dashArray: '4, 4'
+      }).addTo(map);
+
+      polygon.bindTooltip(comm.name, {
+        permanent: true,
+        direction: 'center',
+        className: 'community-label'
+      }).openTooltip();
+
+      polygon.on('mouseover', () => {
+        polygon.setStyle({
+          fillOpacity: 0.35,
+          weight: 2.5
+        });
+      });
+      polygon.on('mouseout', () => {
+        polygon.setStyle({
+          fillOpacity: 0.15,
+          weight: 1.5
+        });
+      });
+
+      communityLayersRef.current.push(polygon);
+    });
+
+    return () => {
+      communityLayersRef.current.forEach(layer => map.removeLayer(layer));
+      communityLayersRef.current = [];
+    };
+  }, [showCommunities, mapStyle, viewMode]);
 
   // Reset map bounds fitting state when viewMode changes
   useEffect(() => {
@@ -885,6 +952,46 @@ export default function NearbyRadar({ userLocation }) {
                     {style.label}
                   </button>
                 ))}
+              </div>
+
+              {/* Communities Overlay Toggle */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: '55px',
+                  right: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'rgba(10, 25, 47, 0.85)',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(48, 60, 85, 0.6)',
+                  zIndex: 1000,
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+                onClick={handleToggleCommunities}
+              >
+                <input 
+                  type="checkbox" 
+                  checked={showCommunities}
+                  onChange={() => {}} // Controlled by wrapper click
+                  style={{ 
+                    cursor: 'pointer',
+                    accentColor: '#64ffda'
+                  }}
+                />
+                <span 
+                  style={{ 
+                    fontSize: '0.7rem', 
+                    fontWeight: '600',
+                    color: showCommunities ? '#64ffda' : '#8892b0',
+                    fontFamily: 'Montserrat, sans-serif'
+                  }}
+                >
+                  Communities
+                </span>
               </div>
             </div>
           )}
