@@ -993,14 +993,16 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#8892b0', width: '80px', flexShrink: 0 }}>Card Front:</span>
+                  <span style={{ fontSize: '0.75rem', color: '#8892b0', width: '80px', flexShrink: 0 }}>
+                    {crawlType === 'nest' ? 'Card Front:' : 'Crawl Card:'}
+                  </span>
                   <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <Camera size={12} /> Camera
-                    <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Front')} style={{ display: 'none' }} />
+                    <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, crawlType === 'nest' ? 'Nest Card - Front' : 'False Crawl Card')} style={{ display: 'none' }} />
                   </label>
                   <label className="btn btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <Upload size={12} /> Upload
-                    <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, 'Nest Card - Front')} style={{ display: 'none' }} />
+                    <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, crawlType === 'nest' ? 'Nest Card - Front' : 'False Crawl Card')} style={{ display: 'none' }} />
                   </label>
                 </div>
 
