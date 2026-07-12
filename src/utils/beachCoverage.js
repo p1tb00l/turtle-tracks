@@ -133,8 +133,32 @@ export function calculateBeachCoverage(path, southCenterline, melroseCenterline,
     return R * c;
   };
 
+  // Interpolate points between consecutive coordinates in the path to handle skips and gaps
+  const interpolatedPath = [];
+  for (let i = 0; i < path.length; i++) {
+    const pt = path[i];
+    interpolatedPath.push(pt);
+    
+    if (i < path.length - 1) {
+      const nextPt = path[i + 1];
+      const dist = calculateDistance(pt, nextPt);
+      
+      // Interpolate points if distance is greater than the slot size
+      if (dist > 15) {
+        const numSegments = Math.max(2, Math.floor(dist / 10)); // interpolate every 10 meters
+        for (let j = 1; j < numSegments; j++) {
+          const t = j / numSegments;
+          interpolatedPath.push({
+            lat: pt.lat + (nextPt.lat - pt.lat) * t,
+            lng: pt.lng + (nextPt.lng - pt.lng) * t
+          });
+        }
+      }
+    }
+  }
+
   // Map each path coordinate point to slots
-  path.forEach(pt => {
+  interpolatedPath.forEach(pt => {
     projectToCenterline(pt, southCenterline, southPolygon, 'south');
     projectToCenterline(pt, melroseCenterline, melrosePolygon, 'melrose');
   });
