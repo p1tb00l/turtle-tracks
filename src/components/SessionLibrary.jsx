@@ -526,7 +526,7 @@ export default function SessionLibrary({ sessions, setSessions }) {
 
                 return (
                   <div 
-                    key={session.id}
+                    key={`${session.id}-${session.startTime}`}
                     className="glass-card"
                     onClick={() => setSelectedSessionId(session.id)}
                     style={{

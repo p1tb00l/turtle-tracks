@@ -344,11 +344,15 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   // Handle Starting a Session
   const handleStartSession = () => {
     const todayStr = getLocalDateString(new Date());
-    const countForToday = sessions.filter(s => s.id && s.id.startsWith(todayStr)).length;
-    const seq = String(countForToday + 1).padStart(2, '0');
+    let seqNum = 1;
+    let newId = `${todayStr}-${String(seqNum).padStart(2, '0')}`;
+    while (sessions.some(s => s.id === newId)) {
+      seqNum++;
+      newId = `${todayStr}-${String(seqNum).padStart(2, '0')}`;
+    }
     
     const newSession = {
-      id: `${todayStr}-${seq}`,
+      id: newId,
       startTime: new Date().toISOString(),
       locationName: 'Daufuskie Island Beach',
       distance: 0,

@@ -39,6 +39,47 @@ function App() {
     preloadQuickCam();
   }, []);
 
+  // Automatic migration: de-duplicate any completed session logs sharing the same ID
+  React.useEffect(() => {
+    if (sessionsLoaded && sessions && sessions.length > 0) {
+      let hasDuplicates = false;
+      const seenIds = new Set();
+      const updatedSessions = [];
+
+      for (let i = sessions.length - 1; i >= 0; i--) {
+        const session = sessions[i];
+        let originalId = session.id;
+        if (!originalId) {
+          const dateStr = session.startTime ? new Date(session.startTime).toISOString().slice(0, 10).replace(/-/g, '') : new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          originalId = `${dateStr}-01`;
+        }
+
+        let cleanId = originalId;
+        let seq = 1;
+        const match = originalId.match(/^(\d{8})-(\d+)$/);
+        const prefix = match ? match[1] : originalId;
+
+        while (seenIds.has(cleanId)) {
+          hasDuplicates = true;
+          seq++;
+          cleanId = `${prefix}-${String(seq).padStart(2, '0')}`;
+        }
+        seenIds.add(cleanId);
+        
+        if (cleanId !== session.id) {
+          updatedSessions.unshift({ ...session, id: cleanId });
+        } else {
+          updatedSessions.unshift(session);
+        }
+      }
+
+      if (hasDuplicates) {
+        console.log("De-duplicated sessions list and updated IDs:", updatedSessions.map(s => s.id));
+        setSessions(updatedSessions);
+      }
+    }
+  }, [sessionsLoaded]);
+
   const handleSessionComplete = (newSession) => {
     const updated = [newSession, ...sessions];
     if (updated.length > 10) {
