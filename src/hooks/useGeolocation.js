@@ -202,14 +202,27 @@ export function useGeolocation(isTracking = false, options = {}) {
     let wakeLock = null;
     const requestWakeLock = async () => {
       try {
-        if ('wakeLock' in navigator) {
+        if ('wakeLock' in navigator && !wakeLock) {
           wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Screen Wake Lock acquired');
+          wakeLock.addEventListener('release', () => {
+            wakeLock = null;
+            console.log('Screen Wake Lock released');
+          });
         }
       } catch (err) {
         console.warn('Wake Lock request failed:', err);
       }
     };
+    
     requestWakeLock();
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        await requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     const lastTimestampRef = { current: Date.now() };
     let tentativePoints = [];
@@ -258,9 +271,10 @@ export function useGeolocation(isTracking = false, options = {}) {
         }
 
         if (isSpeedInvalid) {
-          // Check if this point matches the tentative sequence we're building
+          // The velocity is physically impossible (jumping coordinates). Keep old point, buffer new point.
+          console.warn(`Encountered erratic GPS velocity jump (${(speedMPS * 2.23694).toFixed(1)} mph). Buffering tentative point...`);
+          
           if (tentativePoints.length === 0) {
-            console.warn(`Tentative errant point detected (speed: ${((distMoved / timeElapsedSec) * 2.23694).toFixed(1)} mph). Buffering...`);
             tentativePoints.push({ loc: newLoc, timestamp: now });
             return prevPath;
           } else {
@@ -348,6 +362,7 @@ export function useGeolocation(isTracking = false, options = {}) {
     );
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Square, Plus, Map, List, Clock, Navigation, Camera, Upload, Trash2 } from 'lucide-react';
+import { Square, Plus, Map, List, Clock, Navigation, Camera, Upload, Trash2, AlertTriangle } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { getIslandLocation } from '../utils/geocoding';
 import CrawlWizard from './CrawlWizard';
@@ -557,6 +557,26 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
               )}
             </div>
           )}
+
+          {/* Geolocation Lock / Background Warning Panel */}
+          <div className="glass-panel" style={{
+            padding: '10px 14px',
+            backgroundColor: 'rgba(230, 241, 255, 0.03)',
+            border: '1px dashed rgba(100, 255, 218, 0.25)',
+            borderRadius: '10px',
+            fontSize: '0.72rem',
+            color: '#8892b0',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '8px',
+            lineHeight: '1.4'
+          }}>
+            <AlertTriangle className="text-[#64ffda]" size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong style={{ color: '#e6f1ff', display: 'block', marginBottom: '2px' }}>PWA GPS Tracking Advisory</strong>
+              To prevent mobile browser sleep and data loss, please keep this screen awake. The app will auto-request a screen wake lock while tracking.
+            </div>
+          </div>
 
           {/* Map/List View toggles */}
           <div style={{ display: 'flex', gap: '8px' }}>
