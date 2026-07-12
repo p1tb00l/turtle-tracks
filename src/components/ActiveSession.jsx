@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Square, Plus, Map, List, Clock, Navigation, Camera, Upload, Trash2, AlertTriangle } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { getIslandLocation } from '../utils/geocoding';
@@ -214,6 +214,9 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   const [isTurtleEncounter, setIsTurtleEncounter] = useState(false);
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
   
+  const hasRestoredRef = useRef(false);
+  const isEndingRef = useRef(false);
+
   // Geolocation tracking hook
   const isTracking = !!activeSession;
   const { 
@@ -286,9 +289,10 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
   useEffect(() => {
     if (activeSession) {
       // Set path and distance in hook if restoring mid-session
-      if (activeSession.path?.length > 0 && path.length === 0) {
-        setPath(activeSession.path);
+      if (!hasRestoredRef.current) {
+        setPath(activeSession.path || []);
         setDistance(activeSession.distance || 0);
+        hasRestoredRef.current = true;
       }
       
       // Calculate elapsed timer seconds
@@ -297,6 +301,8 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
     } else {
       setSeconds(0);
       setLocName('Acquiring Location...');
+      hasRestoredRef.current = false;
+      isEndingRef.current = false;
     }
   }, [activeSession?.id]);
 
@@ -328,7 +334,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
             weather: weather || prev.weather || 'Unavailable',
             tides: tides || prev.tides || 'Unavailable'
           };
-          localStorage.setItem('turtletracks_active_session', JSON.stringify(updated));
           return updated;
         });
       };
@@ -355,7 +360,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 
   // Sync GPS updates to the activeSession parent state (so it persists reload)
   useEffect(() => {
-    if (activeSession && !showWizard) {
+    if (activeSession && !showWizard && hasRestoredRef.current && !isEndingRef.current) {
       const updatedState = {
         ...activeSession,
         path,
@@ -366,7 +371,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
       idb.set('turtletracks_active_session', updatedState)
         .catch(e => console.error("Failed to sync active session GPS updates to IndexedDB:", e));
     }
-  }, [path, distance, beachCoverage, locName, showWizard]);
+  }, [activeSession, path, distance, beachCoverage, locName, showWizard]);
 
   // Handle Crawl Documentation
   const handleSaveCrawl = async (crawlData) => {
@@ -402,6 +407,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 
   // Handle Ending a Session
   const handleEndSession = () => {
+    isEndingRef.current = true;
     stopSimulator();
     const finalSession = {
       ...activeSession,
@@ -724,7 +730,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                           }];
                           const updatedSession = { ...activeSession, photos: updatedPhotos };
                           setActiveSession(updatedSession);
-                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
                         } catch (err) {
                           console.error("Session photo compression failed, using fallback:", err);
                           const updatedPhotos = [...(activeSession.photos || []), {
@@ -735,7 +740,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                           }];
                           const updatedSession = { ...activeSession, photos: updatedPhotos };
                           setActiveSession(updatedSession);
-                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
                         }
                       };
                       img.src = event.target.result;
@@ -787,7 +791,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                           }];
                           const updatedSession = { ...activeSession, photos: updatedPhotos };
                           setActiveSession(updatedSession);
-                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
                         } catch (err) {
                           console.error("Session photo compression failed, using fallback:", err);
                           const updatedPhotos = [...(activeSession.photos || []), {
@@ -798,7 +801,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                           }];
                           const updatedSession = { ...activeSession, photos: updatedPhotos };
                           setActiveSession(updatedSession);
-                          localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
                         }
                       };
                       img.src = event.target.result;
@@ -825,7 +827,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                         const updatedPhotos = activeSession.photos.filter(item => item.id !== p.id);
                         const updatedSession = { ...activeSession, photos: updatedPhotos };
                         setActiveSession(updatedSession);
-                        localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
                       }}
                       style={{
                         position: 'absolute',
@@ -868,7 +869,6 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
                 const updatedNotes = e.target.value;
                 const updatedSession = { ...activeSession, notes: updatedNotes };
                 setActiveSession(updatedSession);
-                localStorage.setItem('turtletracks_active_session', JSON.stringify(updatedSession));
               }}
               style={{
                 width: '100%',
