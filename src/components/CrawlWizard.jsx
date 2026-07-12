@@ -26,7 +26,7 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
   const [falseCrawlNumber, setFalseCrawlNumber] = useState('');
 
   const [notes, setNotes] = useState('');
-  const [nestCardDone, setNestCardDone] = useState(false);
+  const [nestCardDone, setNestCardDone] = useState(true);
   const [coordinates, setCoordinates] = useState(null);
   const [nestLocationLandmark, setNestLocationLandmark] = useState('');
   const [relocationLandmark, setRelocationLandmark] = useState('');
@@ -984,12 +984,12 @@ export default function CrawlWizard({ activeCoords, onSaveCrawl, onCancel, isTur
 
             {/* Nest card confirmation */}
             <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label className="form-checkbox">
-                <input type="checkbox" checked={nestCardDone} onChange={(e) => setNestCardDone(e.target.checked)} />
-                <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(48, 60, 85, 0.4)', paddingBottom: '8px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '1.1rem' }}>📋</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#64ffda' }}>
                   {crawlType === 'nest' ? 'Nest Card Completed Neatly & Fully' : 'Crawl Card Completed Neatly & Fully'}
                 </span>
-              </label>
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
