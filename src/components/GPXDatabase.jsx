@@ -168,6 +168,65 @@ export default function GPXDatabase({ userLocation }) {
     return localStorage.getItem('turtletracks_show_communities') === 'true';
   });
   const communityLayersRef = useRef([]);
+  const [copiedList, setCopiedList] = useState(false);
+
+  const handleExportList = () => {
+    const nests = processedWaypoints.filter(wp => 
+      wp.subtype === 'in_situ' || 
+      wp.subtype === 'relocated_final' || 
+      wp.subtype === 'relocated_original' || 
+      wp.subtype === 'possible_nest'
+    );
+
+    if (nests.length === 0) {
+      alert("No nests found in the current filtered list to export.");
+      return;
+    }
+
+    const lines = nests.map(wp => {
+      const nestMatch = wp.name.match(/(?:Possible\s+)?Nest\s+(\d+)/i);
+      const nestNum = nestMatch ? nestMatch[1] : '';
+      const nestLabel = nestNum ? `Nest ${nestNum}` : wp.name;
+
+      const isRelocated = /relocated/i.test(wp.name) || wp.subtype === 'relocated_final';
+      const relocationType = isRelocated ? 'Relocated' : 'In Situ';
+
+      const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+      let nestDate = null;
+      if (dateMatch) {
+        nestDate = new Date(parseInt(dateMatch[1], 10), parseInt(dateMatch[2], 10) - 1, parseInt(dateMatch[3], 10));
+      } else if (wp.timestamp) {
+        nestDate = new Date(wp.timestamp);
+      }
+
+      let dateStr = 'Unknown Date';
+      let ageStr = 'unknown age';
+
+      if (nestDate && !isNaN(nestDate.getTime())) {
+        const yyyy = nestDate.getFullYear();
+        const mm = String(nestDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(nestDate.getDate()).padStart(2, '0');
+        dateStr = `${yyyy}-${mm}-${dd}`;
+
+        const diffTime = Math.abs(new Date() - nestDate);
+        const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        ageStr = `${ageDays} ${ageDays === 1 ? 'day' : 'days'}`;
+      }
+
+      return `${nestLabel} (${relocationType}) - ${dateStr} (${ageStr}) - ${wp.lat}, ${wp.lng}`;
+    });
+
+    const textToCopy = lines.join('\n');
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        setCopiedList(true);
+        setTimeout(() => setCopiedList(false), 2000);
+      })
+      .catch(err => {
+        console.error("Failed to copy list:", err);
+        alert("Failed to copy list to clipboard.");
+      });
+  };
 
   const handleToggleCommunities = () => {
     const nextVal = !showCommunities;
@@ -917,7 +976,36 @@ export default function GPXDatabase({ userLocation }) {
 
           {/* Items count and sort controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#8892b0' }}>
-            <span>Showing {processedWaypoints.length} entries</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Showing {processedWaypoints.length} entries</span>
+              <button
+                onClick={handleExportList}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64ffda',
+                  cursor: 'pointer',
+                  fontSize: '0.72rem',
+                  fontWeight: '600',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(100, 255, 218, 0.05)',
+                  transition: 'all 0.2s ease',
+                  outline: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(100, 255, 218, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(100, 255, 218, 0.05)';
+                }}
+              >
+                {copiedList ? '✓ Copied!' : 'Export List'}
+              </button>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <select
                 value={sortBy}
