@@ -439,7 +439,7 @@ export default function ActiveSession({ activeSession, setActiveSession, onSessi
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', gap: '20px', position: 'relative' }}>
-      {databaseCounters.maxNest > 108 && <CelebrationTurtles />}
+      
       
       {/* 1. SESSION NOT STARTED STATE */}
       {!activeSession ? (
