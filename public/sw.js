@@ -5,7 +5,10 @@ const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/assets/react.svg'
+  '/pwa-icon.png',
+  '/pwa-icon-192.png',
+  '/pwa-icon-512.png',
+  '/favicon.svg'
 ];
 
 self.addEventListener('install', (event) => {
