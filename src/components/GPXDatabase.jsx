@@ -304,7 +304,7 @@ export default function GPXDatabase({ userLocation }) {
         const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
         if (isInventoried) return false;
 
-        // Parse date and check if it's >= 55 days old
+        // Parse date and check if it's >= 45 days old
         const dateMatch = wp.name.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
         let nestDate = null;
         if (dateMatch) {
@@ -317,7 +317,7 @@ export default function GPXDatabase({ userLocation }) {
         
         const diffTime = Math.abs(new Date() - nestDate);
         const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        if (ageDays < 50) return false;
+        if (ageDays < 45) return false;
       }
 
       // 2. Filter by search query
