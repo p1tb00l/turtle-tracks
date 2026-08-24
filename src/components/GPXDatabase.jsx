@@ -213,7 +213,9 @@ export default function GPXDatabase({ userLocation }) {
         ageStr = `${ageDays} ${ageDays === 1 ? 'day' : 'days'}`;
       }
 
-      return `${nestLabel} (${relocationType}) - ${dateStr} (${ageStr}) - ${wp.lat}, ${wp.lng}`;
+      const isInventoried = wp.name.toLowerCase().includes('inventoried') || (wp.desc && wp.desc.toLowerCase().includes('inventoried'));
+
+      return `${nestLabel} (${relocationType})${isInventoried ? ' (Inventoried)' : ''} - ${dateStr} (${ageStr}) - ${wp.lat}, ${wp.lng}`;
     });
 
     const textToCopy = lines.join('\n');
